@@ -1294,25 +1294,60 @@ function loadMockData() {
     }
 }
 
+// POPULATE TEAM FILTER DROPDOWN
+function populateTeamFilterSelect() {
+    const teamFilterEl = document.getElementById('reward-team-filter-select');
+    if (!teamFilterEl) return;
+    
+    const currentTeamVal = teamFilterEl.value || "all";
+    
+    // Trích xuất các tổ duy nhất từ state.employees
+    const teams = [...new Set(state.employees.map(emp => emp.to).filter(Boolean))];
+    teams.sort((a, b) => a.localeCompare(b, 'vi', { sensitivity: 'accent' }));
+    
+    teamFilterEl.innerHTML = '<option value="all">-- Tất cả các Tổ --</option>';
+    teams.forEach(team => {
+        const option = document.createElement('option');
+        option.value = team;
+        option.textContent = team;
+        teamFilterEl.appendChild(option);
+    });
+    
+    if (currentTeamVal && (currentTeamVal === "all" || teams.includes(currentTeamVal))) {
+        teamFilterEl.value = currentTeamVal;
+    } else {
+        teamFilterEl.value = "all";
+    }
+}
+
 // POPULATE EMPLOYEE DROPDOWN SELECT FROM STATE
 function populateEmployeeSelect() {
     const selectEl = document.getElementById('reward-employee-select');
+    const teamFilterEl = document.getElementById('reward-team-filter-select');
     if (!selectEl) return;
+    
+    // Lấy bộ lọc tổ hiện hành
+    const selectedTeam = teamFilterEl ? teamFilterEl.value : "all";
     
     // Lưu lại giá trị hiện tại (nếu có)
     const currentVal = selectEl.value;
     
     selectEl.innerHTML = '<option value="">-- Click để chọn nhân viên từ danh bạ --</option>';
     
+    // Lọc danh sách nhân viên theo tổ được chọn
+    let filteredEmployees = [...state.employees];
+    if (selectedTeam && selectedTeam !== "all") {
+        filteredEmployees = filteredEmployees.filter(emp => emp.to === selectedTeam);
+    }
+    
     // Sắp xếp danh sách nhân viên theo tên tiếng Việt để dễ tìm kiếm trong dropdown
-    const sortedEmployees = [...state.employees];
-    sortedEmployees.sort((a, b) => {
+    filteredEmployees.sort((a, b) => {
         const nameA = (a.tenNV || "").toString();
         const nameB = (b.tenNV || "").toString();
         return nameA.localeCompare(nameB, 'vi', { sensitivity: 'accent' });
     });
     
-    sortedEmployees.forEach(emp => {
+    filteredEmployees.forEach(emp => {
         if (!emp || !emp.maNV) return;
         const option = document.createElement('option');
         option.value = emp.maNV;
@@ -1321,11 +1356,19 @@ function populateEmployeeSelect() {
         selectEl.appendChild(option);
     });
     
-    // Phục hồi giá trị cũ nếu vẫn tồn tại
-    if (currentVal && sortedEmployees.some(emp => emp.maNV === currentVal)) {
+    // Phục hồi giá trị cũ nếu vẫn tồn tại trong danh sách đã lọc
+    if (currentVal && filteredEmployees.some(emp => emp.maNV === currentVal)) {
         selectEl.value = currentVal;
     } else {
         selectEl.value = "";
+        
+        // Reset các ô nhập chi tiết vì nhân viên đã bị lọc mất
+        const nameInput = document.getElementById('reward-name');
+        const idInput = document.getElementById('reward-id');
+        const teamInput = document.getElementById('reward-team');
+        if (nameInput) nameInput.value = "";
+        if (idInput) idInput.value = "";
+        if (teamInput) teamInput.value = "";
     }
 }
 
@@ -1333,12 +1376,14 @@ function populateEmployeeSelect() {
 function extractEmployeeDatabase() {
     // Nếu ở chế độ Live và đã có dữ liệu danh bạ chính thức từ sheet danhba, giữ nguyên
     if (state.isLive && state.employees && state.employees.length > 0) {
+        populateTeamFilterSelect();
         populateEmployeeSelect();
         return;
     }
     // Nếu ở chế độ Demo/Offline, sử dụng danh sách nhân viên danh bạ tĩnh để chạy thử đầy đủ
     if (!state.isLive && typeof MOCK_EMPLOYEES !== 'undefined' && MOCK_EMPLOYEES.length > 0) {
         state.employees = [...MOCK_EMPLOYEES];
+        populateTeamFilterSelect();
         populateEmployeeSelect();
         return;
     }
@@ -1359,6 +1404,7 @@ function extractEmployeeDatabase() {
         }
     });
     state.employees = Array.from(empMap.values());
+    populateTeamFilterSelect();
     populateEmployeeSelect();
 }
 
@@ -1517,9 +1563,17 @@ function setupEventListeners() {
 
     // Form logic: Dropdown Select for Employee from Danh Bạ
     const employeeSelect = document.getElementById('reward-employee-select');
+    const teamFilterSelect = document.getElementById('reward-team-filter-select');
     const nameInput = document.getElementById('reward-name');
     const idInput = document.getElementById('reward-id');
     const teamInput = document.getElementById('reward-team');
+
+    if (teamFilterSelect) {
+        teamFilterSelect.addEventListener('change', () => {
+            // Khi đổi tổ lọc, cập nhật danh sách nhân viên tương ứng
+            populateEmployeeSelect();
+        });
+    }
 
     if (employeeSelect) {
         employeeSelect.addEventListener('change', (e) => {

@@ -150,13 +150,24 @@
                     
                     <form class="reward-form" id="reward-points-form">
                         <div class="form-row">
+                            <!-- Lọc theo Tổ -->
+                            <div class="form-group">
+                                <label for="reward-team-filter-select">Lọc Theo Tổ / Bộ Phận</label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-filter"></i>
+                                    <select id="reward-team-filter-select" class="form-control">
+                                        <option value="all">-- Tất cả các Tổ --</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <!-- Chọn nhân viên từ danh bạ -->
-                            <div class="form-group" style="grid-column: 1 / -1;">
-                                <label for="reward-employee-select">Chọn Nhân Viên Từ Danh Bạ <span style="color: var(--color-danger)">*</span></label>
+                            <div class="form-group">
+                                <label for="reward-employee-select">Chọn Nhân Viên <span style="color: var(--color-danger)">*</span></label>
                                 <div class="input-container">
                                     <i class="fa-solid fa-user-tie"></i>
                                     <select id="reward-employee-select" class="form-control" required>
-                                        <option value="">-- Click để chọn nhân viên từ danh bạ --</option>
+                                        <option value="">-- Chọn nhân viên từ danh bạ --</option>
                                     </select>
                                 </div>
                             </div>
