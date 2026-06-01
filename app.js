@@ -489,12 +489,13 @@ function saveOffline(payload) {
 
 // AUTOCOMPLETE HELPER
 function setupAutocomplete(inputElement, field, onSelect) {
+    if (!inputElement) return;
     const listElement = document.createElement('ul');
     listElement.className = 'autocomplete-list';
     inputElement.parentNode.appendChild(listElement);
     
     inputElement.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase().trim();
+        const query = e.target.value.trim().toLowerCase();
         listElement.innerHTML = '';
         
         if (!query) {
@@ -503,10 +504,13 @@ function setupAutocomplete(inputElement, field, onSelect) {
         }
         
         const matches = state.employees.filter(emp => {
-            return emp[field].toLowerCase().includes(query) || 
-                   (field === 'tenNV' && emp.maNV.toLowerCase().includes(query)) ||
-                   (field === 'maNV' && emp.tenNV.toLowerCase().includes(query));
-        }).slice(0, 5); // Tối đa 5 gợi ý
+            if (!emp) return false;
+            const maNV = emp.maNV ? emp.maNV.toString().toLowerCase() : "";
+            const tenNV = emp.tenNV ? emp.tenNV.toString().toLowerCase() : "";
+            const to = emp.to ? emp.to.toString().toLowerCase() : "";
+            
+            return maNV.includes(query) || tenNV.includes(query) || to.includes(query);
+        }).slice(0, 8); // Tối đa 8 gợi ý cho phong phú
         
         if (matches.length === 0) {
             listElement.classList.remove('active');
