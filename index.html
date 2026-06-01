@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VNPT - Dashboard Điểm Khuyến Khích & Khen Thưởng</title>
+    <title>VNPT - Hệ Thống Điểm Khuyến Khích & Khen Thưởng</title>
     
     <!-- Premium Icons & Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,13 +21,13 @@
         <aside class="sidebar" id="sidebar">
             <div class="brand">
                 <div class="brand-logo">V</div>
-                <div class="brand-name">VNPT - Reward</div>
+                <div class="brand-name">VNPT - Thưởng Điểm</div>
             </div>
             
             <ul class="menu-list">
                 <li class="menu-item active" data-tab="dashboard">
                     <i class="fa-solid fa-chart-pie"></i>
-                    <span>Tổng quan (Dashboard)</span>
+                    <span>Tổng quan</span>
                 </li>
                 <li class="menu-item" data-tab="reward">
                     <i class="fa-solid fa-circle-plus"></i>
@@ -59,7 +59,7 @@
             <button class="menu-toggle" id="menu-toggle">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <div class="brand-name" style="font-size: 1rem; margin-bottom: 0;">VNPT - Reward</div>
+            <div class="brand-name" style="font-size: 1rem; margin-bottom: 0;">VNPT - Thưởng Điểm</div>
             <div class="api-status-badge" style="padding: 4px 10px; font-size: 0.7rem;">
                 <div class="status-dot" id="status-dot-mobile"></div>
             </div>
@@ -326,7 +326,7 @@
             <section class="page-view" id="config-view">
                 <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
                     <div class="card-title">
-                        <span><i class="fa-solid fa-gears" style="color: var(--color-primary); margin-right: 8px;"></i>Cấu Hình Tích Hợp Google Sheets API</span>
+                        <span><i class="fa-solid fa-gears" style="color: var(--color-primary); margin-right: 8px;"></i>Cấu Hình Kết Nối Hệ Thống</span>
                     </div>
                     
                     <div class="config-group">
@@ -334,7 +334,7 @@
                         <p>Bằng cách kết nối trực tiếp với Google Sheets của bạn thông qua Google Apps Script Web App API, mọi thay đổi, lưu trữ điểm mới hoặc truy vấn thống kê sẽ được đồng bộ hóa trực tiếp theo thời gian thực.</p>
                         
                         <div class="form-group" style="margin-bottom: 1.5rem;">
-                            <label for="api-url-input">Google Apps Script Web App URL <span style="color: var(--color-danger)">*</span></label>
+                            <label for="api-url-input">Đường dẫn liên kết hệ thống (Web App URL) <span style="color: var(--color-danger)">*</span></label>
                             <div class="input-container" style="margin-top: 8px;">
                                 <i class="fa-solid fa-link"></i>
                                 <input type="url" id="api-url-input" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
@@ -347,7 +347,7 @@
                     </div>
 
                     <div class="glass-card" style="border-color: hsla(var(--hue-primary), 20%, 30%, 0.25); background: hsla(var(--hue-primary), 20%, 5%, 0.2);">
-                        <h4 style="margin-bottom: 12px; font-weight: 700; color: var(--color-primary);"><i class="fa-solid fa-circle-question"></i> Làm thế nào để lấy URL Web App API?</h4>
+                        <h4 style="margin-bottom: 12px; font-weight: 700; color: var(--color-primary);"><i class="fa-solid fa-circle-question"></i> Làm thế nào để lấy Đường dẫn liên kết?</h4>
                         <ol style="margin-left: 20px; font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px; line-height: 1.5;">
                             <li>Mở bảng tính Google Sheets của bạn.</li>
                             <li>Chọn <strong>Tiện ích mở rộng (Extensions)</strong> &gt; <strong>Apps Script</strong>.</li>

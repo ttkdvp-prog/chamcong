@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // INITIALIZE APP
 async function initApp() {
     loadLocalSettings();
-    showToast("Đang khởi tạo Dashboard...", "info");
+    showToast("Đang khởi tạo ứng dụng...", "info");
     
     // Nạp dữ liệu
     await refreshData();
@@ -164,7 +164,7 @@ async function refreshData() {
                 state.isLive = true;
                 
                 statusDot.className = "status-dot connected";
-                statusText.textContent = "Google Sheets Live";
+                statusText.textContent = "Đã kết nối trực tiếp";
                 showToast("Đã tải dữ liệu trực tiếp từ Google Sheets!", "success");
             } else {
                 throw new Error(result.message || "Lỗi API");
@@ -173,13 +173,13 @@ async function refreshData() {
             console.error("Cảnh báo: Không thể tải dữ liệu từ API, chuyển sang Mock Data.", error);
             loadMockData();
             statusDot.className = "status-dot";
-            statusText.textContent = "Chế độ Demo (Offline)";
+            statusText.textContent = "Chế độ Ngoại tuyến";
             showToast("Kết nối API lỗi. Đã tải dữ liệu Demo tích hợp sẵn.", "error");
         }
     } else {
         loadMockData();
         statusDot.className = "status-dot";
-        statusText.textContent = "Chế độ Demo (Chưa cấu hình API)";
+        statusText.textContent = "Chế độ Demo (Chưa cấu hình)";
     }
     
     extractEmployeeDatabase();
