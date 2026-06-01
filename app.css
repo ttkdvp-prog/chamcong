@@ -343,6 +343,18 @@ body {
     background: var(--color-accent);
 }
 
+.metric-card.danger::before {
+    background: var(--color-danger);
+}
+
+.metric-card.danger .metric-icon {
+    color: var(--color-danger);
+}
+
+.metric-card.danger:hover {
+    border-color: var(--color-danger-glow);
+}
+
 .metric-card:hover {
     transform: translateY(-5px);
     border-color: var(--border-color-hover);

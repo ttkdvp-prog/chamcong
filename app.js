@@ -1900,15 +1900,30 @@ function updateUI() {
 
     // 2. Tính toán tổng số lượng cho KPIs (dựa trên tháng được chọn)
     const activeRecords = state.records.filter(r => state.selectedMonth === 'all' || r["Tháng"] === state.selectedMonth);
-    const totalPoints = activeRecords.reduce((sum, r) => sum + (r["Điểm khuyến khích"] || 0), 0);
+    
+    // Tính tổng điểm cộng (các bản ghi điểm > 0)
+    const positivePoints = activeRecords
+        .filter(r => (r["Điểm khuyến khích"] || 0) > 0)
+        .reduce((sum, r) => sum + r["Điểm khuyến khích"], 0);
+        
+    // Tính tổng điểm trừ (các bản ghi điểm < 0)
+    const negativePoints = activeRecords
+        .filter(r => (r["Điểm khuyến khích"] || 0) < 0)
+        .reduce((sum, r) => sum + r["Điểm khuyến khích"], 0);
+
     const totalMoney = activeRecords.reduce((sum, r) => sum + (r["Tiền thưởng"] || 0), 0);
     const uniqueEmployeesCount = new Set(activeRecords.map(r => r["Mã nhân viên"])).size;
 
     // Cập nhật các KPI Card
-    document.getElementById('kpi-total-points').textContent = formatNumber(totalPoints);
-    document.getElementById('kpi-total-money').textContent = formatCurrency(totalMoney);
-    document.getElementById('kpi-employees').textContent = uniqueEmployeesCount;
-    document.getElementById('kpi-current-month').textContent = state.selectedMonth === 'all' ? "Tất cả" : formatMonthDisplay(state.selectedMonth);
+    const posPointsEl = document.getElementById('kpi-positive-points');
+    const negPointsEl = document.getElementById('kpi-negative-points');
+    if (posPointsEl) posPointsEl.textContent = formatNumber(positivePoints);
+    if (negPointsEl) negPointsEl.textContent = formatNumber(negativePoints);
+    
+    const totalMoneyEl = document.getElementById('kpi-total-money');
+    const employeesEl = document.getElementById('kpi-employees');
+    if (totalMoneyEl) totalMoneyEl.textContent = formatCurrency(totalMoney);
+    if (employeesEl) employeesEl.textContent = uniqueEmployeesCount;
 
     // 3. Render Bảng Lịch sử đầy đủ
     renderHistoryTable(filteredRecords);

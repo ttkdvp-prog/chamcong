@@ -88,40 +88,44 @@
             <section class="page-view active" id="dashboard-view">
                 <!-- METRIC CARDS -->
                 <div class="metrics-grid">
+                    <!-- Tổng Điểm Cộng -->
                     <div class="metric-card">
                         <div class="metric-header">
-                            <span>TỔNG ĐIỂM KHUYẾN KHÍCH</span>
-                            <i class="fa-solid fa-award metric-icon"></i>
+                            <span>TỔNG ĐIỂM CỘNG KHEN THƯỞNG</span>
+                            <i class="fa-solid fa-circle-up metric-icon" style="color: var(--color-primary);"></i>
                         </div>
-                        <div class="metric-value" id="kpi-total-points">0</div>
-                        <div class="metric-subtitle">Điểm thưởng lũy kế trong tháng</div>
+                        <div class="metric-value" id="kpi-positive-points" style="color: var(--color-primary);">0</div>
+                        <div class="metric-subtitle">Điểm thưởng khen tặng tích lũy</div>
+                    </div>
+
+                    <!-- Tổng Điểm Trừ -->
+                    <div class="metric-card danger">
+                        <div class="metric-header">
+                            <span>TỔNG ĐIỂM TRỪ GIẢM TRỪ</span>
+                            <i class="fa-solid fa-circle-down metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="kpi-negative-points" style="color: var(--color-danger);">0</div>
+                        <div class="metric-subtitle">Điểm khấu hao giảm trừ tích lũy</div>
                     </div>
                     
+                    <!-- Thực chi tiền thưởng -->
                     <div class="metric-card accent">
                         <div class="metric-header">
-                            <span>TỔNG TIỀN THƯỞNG (5K/ĐIỂM)</span>
+                            <span>THỰC CHI TIỀN THƯỞNG RÒNG</span>
                             <i class="fa-solid fa-wallet metric-icon"></i>
                         </div>
                         <div class="metric-value" id="kpi-total-money">0 đ</div>
-                        <div class="metric-subtitle">Tương ứng toàn đơn vị chi trả</div>
+                        <div class="metric-subtitle">Ngân sách thực chi (5K/Điểm ròng)</div>
                     </div>
                     
+                    <!-- Nhân sự tham gia -->
                     <div class="metric-card">
                         <div class="metric-header">
-                            <span>NHÂN SỰ ĐƯỢC KHEN THƯỞNG</span>
-                            <i class="fa-solid fa-users metric-icon"></i>
+                            <span>NHÂN SỰ ĐƯỢC THƯỞNG/PHẠT</span>
+                            <i class="fa-solid fa-users metric-icon" style="color: var(--color-accent);"></i>
                         </div>
                         <div class="metric-value" id="kpi-employees">0</div>
-                        <div class="metric-subtitle font-weight-500">Mã nhân sự độc nhất nhận điểm</div>
-                    </div>
-                    
-                    <div class="metric-card accent">
-                        <div class="metric-header">
-                            <span>THÁNG HIỆN HÀNH</span>
-                            <i class="fa-solid fa-calendar-check metric-icon"></i>
-                        </div>
-                        <div class="metric-value" id="kpi-current-month" style="font-size: 1.5rem; padding: 6px 0;">--</div>
-                        <div class="metric-subtitle">Kỳ đối soát điểm thưởng</div>
+                        <div class="metric-subtitle font-weight-500">Mã nhân sự nhận điểm thưởng/phạt</div>
                     </div>
                 </div>
 
