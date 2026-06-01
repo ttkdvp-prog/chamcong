@@ -33,6 +33,10 @@
                     <i class="fa-solid fa-circle-plus"></i>
                     <span>Khen thưởng mới</span>
                 </li>
+                <li class="menu-item" data-tab="deduct">
+                    <i class="fa-solid fa-circle-minus"></i>
+                    <span>Điểm trừ mới</span>
+                </li>
                 <li class="menu-item" data-tab="history">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>Lịch sử & Thống kê</span>
@@ -235,6 +239,105 @@
                         <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
                             <button type="reset" class="btn btn-secondary">Nhập Lại</button>
                             <button type="submit" class="btn btn-primary" id="submit-reward-btn">Lưu Điểm Khuyến khích</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 2.5: DEDUCT FORM VIEW -->
+            <section class="page-view" id="deduct-view">
+                <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+                    <div class="card-title">
+                        <span><i class="fa-solid fa-circle-minus" style="color: var(--color-danger); margin-right: 8px;"></i>Ghi Nhận Điểm Trừ Mới</span>
+                    </div>
+                    
+                    <form class="reward-form" id="deduct-points-form">
+                        <div class="form-row">
+                            <!-- Lọc theo Tổ -->
+                            <div class="form-group">
+                                <label for="deduct-team-filter-select">Lọc Theo Tổ / Bộ Phận</label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-filter"></i>
+                                    <select id="deduct-team-filter-select" class="form-control">
+                                        <option value="all">-- Tất cả các Tổ --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Chọn nhân viên từ danh bạ -->
+                            <div class="form-group">
+                                <label for="deduct-employee-select">Chọn Nhân Viên <span style="color: var(--color-danger)">*</span></label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                    <select id="deduct-employee-select" class="form-control" required>
+                                        <option value="">-- Chọn nhân viên từ danh bạ --</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                            <!-- Mã nhân viên -->
+                            <div class="form-group">
+                                <label for="deduct-id">Mã Nhân Viên</label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-id-card" style="opacity: 0.7;"></i>
+                                    <input type="text" id="deduct-id" class="form-control" placeholder="Tự động điền..." readonly>
+                                </div>
+                            </div>
+                            
+                            <!-- Tên nhân viên -->
+                            <div class="form-group">
+                                <label for="deduct-name">Tên Nhân Viên</label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-user" style="opacity: 0.7;"></i>
+                                    <input type="text" id="deduct-name" class="form-control" placeholder="Tự động điền..." readonly>
+                                </div>
+                            </div>
+
+                            <!-- Tổ/Bộ phận -->
+                            <div class="form-group">
+                                <label for="deduct-team">Tổ / Bộ Phận</label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-sitemap" style="opacity: 0.7;"></i>
+                                    <input type="text" id="deduct-team" class="form-control" placeholder="Tự động điền..." readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <!-- Tháng thưởng -->
+                            <div class="form-group">
+                                <label for="deduct-month">Tháng Khấu Trừ (Định dạng: TTrrrr) <span style="color: var(--color-danger)">*</span></label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                    <input type="text" id="deduct-month" class="form-control" placeholder="Ví dụ: 52026 (tháng 5/2026)" required>
+                                </div>
+                            </div>
+
+                            <!-- Điểm trừ -->
+                            <div class="form-group">
+                                <label for="deduct-points">Số Điểm Khấu Trừ Khuyến Khích <span style="color: var(--color-danger)">*</span></label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-star" style="color: var(--color-danger);"></i>
+                                    <input type="number" id="deduct-points" class="form-control" placeholder="Nhập số điểm trừ (ví dụ: 50)" min="1" required>
+                                </div>
+                                <div class="money-preview" style="background: var(--color-danger-glow); border-color: hsla(355, 75%, 55%, 0.2); color: var(--color-danger); animation: pulse-danger 2s infinite;">
+                                    <span>Thành tiền khấu trừ (1 điểm = -5.000đ):</span>
+                                    <span id="deduct-money-amount-preview" style="font-size: 1.25rem;">0 đ</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lý do khấu trừ -->
+                        <div class="form-group">
+                            <label for="deduct-reason">Lý Do / Nội Dung Khấu Trừ Điểm <span style="color: var(--color-danger)">*</span></label>
+                            <textarea id="deduct-reason" class="form-control" rows="4" placeholder="Nhập lý do chi tiết, thời gian và sự kiện dẫn đến việc giảm trừ điểm..." style="padding-left: 14px;" required></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                            <button type="reset" class="btn btn-secondary">Nhập Lại</button>
+                            <button type="submit" class="btn btn-primary" id="submit-deduct-btn" style="background: linear-gradient(135deg, var(--color-danger), #df2c3e); box-shadow: 0 4px 15px var(--color-danger-glow);">Lưu Điểm Trừ</button>
                         </div>
                     </form>
                 </div>

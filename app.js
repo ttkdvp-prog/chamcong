@@ -1202,6 +1202,10 @@ function loadLocalSettings() {
     const now = new Date();
     const currentMonthFormatted = (now.getMonth() + 1) + "" + now.getFullYear();
     document.getElementById('reward-month').value = currentMonthFormatted;
+    const deductMonthEl = document.getElementById('deduct-month');
+    if (deductMonthEl) {
+        deductMonthEl.value = currentMonthFormatted;
+    }
 }
 
 // REFRESH DATA FROM API OR MOCK
@@ -1297,50 +1301,68 @@ function loadMockData() {
 // POPULATE TEAM FILTER DROPDOWN
 function populateTeamFilterSelect() {
     const teamFilterEl = document.getElementById('reward-team-filter-select');
-    if (!teamFilterEl) return;
-    
-    const currentTeamVal = teamFilterEl.value || "all";
+    const deductTeamFilterEl = document.getElementById('deduct-team-filter-select');
     
     // Trích xuất các tổ duy nhất từ state.employees
     const teams = [...new Set(state.employees.map(emp => emp.to).filter(Boolean))];
     teams.sort((a, b) => a.localeCompare(b, 'vi', { sensitivity: 'accent' }));
     
-    teamFilterEl.innerHTML = '<option value="all">-- Tất cả các Tổ --</option>';
-    teams.forEach(team => {
-        const option = document.createElement('option');
-        option.value = team;
-        option.textContent = team;
-        teamFilterEl.appendChild(option);
-    });
+    // Populate reward team filter
+    if (teamFilterEl) {
+        const currentTeamVal = teamFilterEl.value || "all";
+        teamFilterEl.innerHTML = '<option value="all">-- Tất cả các Tổ --</option>';
+        teams.forEach(team => {
+            const option = document.createElement('option');
+            option.value = team;
+            option.textContent = team;
+            teamFilterEl.appendChild(option);
+        });
+        if (currentTeamVal && (currentTeamVal === "all" || teams.includes(currentTeamVal))) {
+            teamFilterEl.value = currentTeamVal;
+        } else {
+            teamFilterEl.value = "all";
+        }
+    }
     
-    if (currentTeamVal && (currentTeamVal === "all" || teams.includes(currentTeamVal))) {
-        teamFilterEl.value = currentTeamVal;
-    } else {
-        teamFilterEl.value = "all";
+    // Populate deduct team filter
+    if (deductTeamFilterEl) {
+        const currentTeamVal = deductTeamFilterEl.value || "all";
+        deductTeamFilterEl.innerHTML = '<option value="all">-- Tất cả các Tổ --</option>';
+        teams.forEach(team => {
+            const option = document.createElement('option');
+            option.value = team;
+            option.textContent = team;
+            deductTeamFilterEl.appendChild(option);
+        });
+        if (currentTeamVal && (currentTeamVal === "all" || teams.includes(currentTeamVal))) {
+            deductTeamFilterEl.value = currentTeamVal;
+        } else {
+            deductTeamFilterEl.value = "all";
+        }
     }
 }
 
 // POPULATE EMPLOYEE DROPDOWN SELECT FROM STATE
 function populateEmployeeSelect() {
-    const selectEl = document.getElementById('reward-employee-select');
-    const teamFilterEl = document.getElementById('reward-team-filter-select');
+    populateEmployeeSelectForId('reward-employee-select', 'reward-team-filter-select', 'reward-name', 'reward-id', 'reward-team');
+    populateEmployeeSelectForId('deduct-employee-select', 'deduct-team-filter-select', 'deduct-name', 'deduct-id', 'deduct-team');
+}
+
+function populateEmployeeSelectForId(selectId, teamFilterId, nameInputId, idInputId, teamInputId) {
+    const selectEl = document.getElementById(selectId);
+    const teamFilterEl = document.getElementById(teamFilterId);
     if (!selectEl) return;
     
-    // Lấy bộ lọc tổ hiện hành
     const selectedTeam = teamFilterEl ? teamFilterEl.value : "all";
-    
-    // Lưu lại giá trị hiện tại (nếu có)
     const currentVal = selectEl.value;
     
     selectEl.innerHTML = '<option value="">-- Click để chọn nhân viên từ danh bạ --</option>';
     
-    // Lọc danh sách nhân viên theo tổ được chọn
     let filteredEmployees = [...state.employees];
     if (selectedTeam && selectedTeam !== "all") {
         filteredEmployees = filteredEmployees.filter(emp => emp.to === selectedTeam);
     }
     
-    // Sắp xếp danh sách nhân viên theo tên tiếng Việt để dễ tìm kiếm trong dropdown
     filteredEmployees.sort((a, b) => {
         const nameA = (a.tenNV || "").toString();
         const nameB = (b.tenNV || "").toString();
@@ -1351,21 +1373,17 @@ function populateEmployeeSelect() {
         if (!emp || !emp.maNV) return;
         const option = document.createElement('option');
         option.value = emp.maNV;
-        // Hiển thị dạng: "Họ và Tên (Mã NV) - Tổ"
         option.textContent = `${emp.tenNV} (${emp.maNV}) - ${emp.to || "Chưa chia tổ"}`;
         selectEl.appendChild(option);
     });
     
-    // Phục hồi giá trị cũ nếu vẫn tồn tại trong danh sách đã lọc
     if (currentVal && filteredEmployees.some(emp => emp.maNV === currentVal)) {
         selectEl.value = currentVal;
     } else {
         selectEl.value = "";
-        
-        // Reset các ô nhập chi tiết vì nhân viên đã bị lọc mất
-        const nameInput = document.getElementById('reward-name');
-        const idInput = document.getElementById('reward-id');
-        const teamInput = document.getElementById('reward-team');
+        const nameInput = document.getElementById(nameInputId);
+        const idInput = document.getElementById(idInputId);
+        const teamInput = document.getElementById(teamInputId);
         if (nameInput) nameInput.value = "";
         if (idInput) idInput.value = "";
         if (teamInput) teamInput.value = "";
@@ -1448,6 +1466,49 @@ function formatMonthDisplay(monthStr) {
         return `Tháng ${month}/${year}`;
     }
     return `Tháng ${s}`;
+}
+
+// HELPER FOR SELECTS & AUTOMATION IN FORMS
+function setupFormSelects(selectId, teamFilterId, nameInputId, idInputId, teamInputId) {
+    const employeeSelect = document.getElementById(selectId);
+    const teamFilterSelect = document.getElementById(teamFilterId);
+    const nameInput = document.getElementById(nameInputId);
+    const idInput = document.getElementById(idInputId);
+    const teamInput = document.getElementById(teamInputId);
+
+    if (teamFilterSelect) {
+        teamFilterSelect.addEventListener('change', () => {
+            // Khi đổi tổ lọc, cập nhật danh sách nhân viên tương ứng
+            populateEmployeeSelect();
+        });
+    }
+
+    if (employeeSelect) {
+        employeeSelect.addEventListener('change', (e) => {
+            const selectedMaNV = e.target.value;
+            if (selectedMaNV) {
+                const selectedEmp = state.employees.find(emp => emp.maNV === selectedMaNV);
+                if (selectedEmp) {
+                    nameInput.value = selectedEmp.tenNV || "";
+                    idInput.value = selectedEmp.maNV || "";
+                    teamInput.value = selectedEmp.to || "";
+                    
+                    // Thêm hiệu ứng highlight nhẹ để thông báo tự động điền thành công
+                    [nameInput, idInput, teamInput].forEach(el => {
+                        el.style.transition = 'background-color 0.3s ease';
+                        el.style.backgroundColor = 'rgba(var(--hue-accent), 0.15)';
+                        setTimeout(() => {
+                            el.style.backgroundColor = '';
+                        }, 500);
+                    });
+                }
+            } else {
+                nameInput.value = "";
+                idInput.value = "";
+                teamInput.value = "";
+            }
+        });
+    }
 }
 
 // SETUP EVENT LISTENERS
@@ -1561,46 +1622,20 @@ function setupEventListeners() {
         });
     }
 
-    // Form logic: Dropdown Select for Employee from Danh Bạ
-    const employeeSelect = document.getElementById('reward-employee-select');
-    const teamFilterSelect = document.getElementById('reward-team-filter-select');
-    const nameInput = document.getElementById('reward-name');
-    const idInput = document.getElementById('reward-id');
-    const teamInput = document.getElementById('reward-team');
-
-    if (teamFilterSelect) {
-        teamFilterSelect.addEventListener('change', () => {
-            // Khi đổi tổ lọc, cập nhật danh sách nhân viên tương ứng
-            populateEmployeeSelect();
+    // Form logic: Auto-calculate demerit money
+    const deductPointsInput = document.getElementById('deduct-points');
+    const deductMoneyPreview = document.getElementById('deduct-money-amount-preview');
+    if (deductPointsInput) {
+        deductPointsInput.addEventListener('input', (e) => {
+            const points = parseFloat(e.target.value) || 0;
+            const money = points * -5000; // Negative for demerits
+            deductMoneyPreview.textContent = formatCurrency(money);
         });
     }
 
-    if (employeeSelect) {
-        employeeSelect.addEventListener('change', (e) => {
-            const selectedMaNV = e.target.value;
-            if (selectedMaNV) {
-                const selectedEmp = state.employees.find(emp => emp.maNV === selectedMaNV);
-                if (selectedEmp) {
-                    nameInput.value = selectedEmp.tenNV || "";
-                    idInput.value = selectedEmp.maNV || "";
-                    teamInput.value = selectedEmp.to || "";
-                    
-                    // Thêm hiệu ứng highlight nhẹ để thông báo tự động điền thành công
-                    [nameInput, idInput, teamInput].forEach(el => {
-                        el.style.transition = 'background-color 0.3s ease';
-                        el.style.backgroundColor = 'rgba(var(--hue-accent), 0.15)';
-                        setTimeout(() => {
-                            el.style.backgroundColor = '';
-                        }, 500);
-                    });
-                }
-            } else {
-                nameInput.value = "";
-                idInput.value = "";
-                teamInput.value = "";
-            }
-        });
-    }
+    // Form logic: Dropdown Selects for Employee from Danh Bạ
+    setupFormSelects('reward-employee-select', 'reward-team-filter-select', 'reward-name', 'reward-id', 'reward-team');
+    setupFormSelects('deduct-employee-select', 'deduct-team-filter-select', 'deduct-name', 'deduct-id', 'deduct-team');
 
     // Form submission
     const submitBtn = document.getElementById('submit-reward-btn');
@@ -1677,6 +1712,81 @@ function setupEventListeners() {
         });
     }
 
+    // Deduct Form submission
+    const deductForm = document.getElementById('deduct-points-form');
+    const submitDeductBtn = document.getElementById('submit-deduct-btn');
+    if (deductForm) {
+        deductForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const thang = document.getElementById('deduct-month').value.trim();
+            const maNV = document.getElementById('deduct-id').value.trim();
+            const tenNV = document.getElementById('deduct-name').value.trim();
+            const to = document.getElementById('deduct-team').value.trim();
+            const pointsVal = parseFloat(deductPointsInput.value) || 0;
+            const diem = pointsVal * -1; // Force negative!
+            const lyDo = document.getElementById('deduct-reason').value.trim();
+            
+            if (!maNV || !tenNV || !diem) {
+                showToast("Vui lòng nhập đầy đủ thông tin bắt buộc!", "error");
+                return;
+            }
+            
+            submitDeductBtn.disabled = true;
+            submitDeductBtn.textContent = "Đang xử lý...";
+            
+            const timestamp = getNowTimestampString();
+            const newRecord = {
+                thang,
+                maNV,
+                tenNV,
+                to,
+                diem,
+                lyDo,
+                timestamp
+            };
+            
+            if (state.isLive && state.apiUrl) {
+                // Gửi lên Google Sheets API
+                try {
+                    const res = await fetch(state.apiUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(newRecord)
+                    });
+                    
+                    showToast("Điểm trừ đang được gửi tới Google Sheets!", "success");
+                    deductForm.reset();
+                    deductMoneyPreview.textContent = "0 đ";
+                    
+                    setTimeout(async () => {
+                        await refreshData();
+                        submitDeductBtn.disabled = false;
+                        submitDeductBtn.textContent = "Lưu Điểm Trừ";
+                        switchTab('history');
+                    }, 2000);
+                } catch (error) {
+                    showToast("Không thể gửi dữ liệu tới Google Sheets. Đang chuyển lưu offline.", "error");
+                    console.error(error);
+                    saveOffline(newRecord);
+                    submitDeductBtn.disabled = false;
+                    submitDeductBtn.textContent = "Lưu Điểm Trừ";
+                }
+            } else {
+                // Chế độ demo offline
+                saveOffline(newRecord);
+                submitDeductBtn.disabled = false;
+                submitDeductBtn.textContent = "Lưu Điểm Trừ";
+                deductForm.reset();
+                deductMoneyPreview.textContent = "0 đ";
+                switchTab('history');
+            }
+        });
+    }
+
     // Export CSV Button
     const exportCsvBtn = document.getElementById('export-csv-btn');
     if (exportCsvBtn) {
@@ -1723,7 +1833,7 @@ function handleHashRouting() {
     const hash = window.location.hash.replace('#', '') || 'dashboard';
     
     // Kiểm tra tính hợp lệ của tab
-    const validTabs = ['dashboard', 'reward', 'history', 'config'];
+    const validTabs = ['dashboard', 'reward', 'deduct', 'history', 'config'];
     const tabName = validTabs.includes(hash) ? hash : 'dashboard';
     
     const views = document.querySelectorAll('.page-view');

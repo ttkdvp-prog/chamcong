@@ -860,3 +860,9 @@ select.form-control option {
 .light-theme .form-control[readonly] {
     background-color: hsla(var(--hue-primary), 30%, 92%, 0.5);
 }
+
+@keyframes pulse-danger {
+    0% { box-shadow: 0 0 0 0 hsla(355, 75%, 55%, 0.25); }
+    70% { box-shadow: 0 0 0 8px hsla(355, 75%, 55%, 0); }
+    100% { box-shadow: 0 0 0 0 hsla(355, 75%, 55%, 0); }
+}
