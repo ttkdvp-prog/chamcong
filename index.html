@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNPT - Dashboard Điểm Khuyến Khích & Khen Thưởng</title>
+    
+    <!-- Premium Icons & Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Style System -->
+    <link rel="stylesheet" href="app.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                <div class="brand-logo">V</div>
+                <div class="brand-name">VNPT - Reward</div>
+            </div>
+            
+            <ul class="menu-list">
+                <li class="menu-item active" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Tổng quan (Dashboard)</span>
+                </li>
+                <li class="menu-item" data-tab="reward">
+                    <i class="fa-solid fa-circle-plus"></i>
+                    <span>Khen thưởng mới</span>
+                </li>
+                <li class="menu-item" data-tab="history">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Lịch sử & Thống kê</span>
+                </li>
+                <li class="menu-item" data-tab="config">
+                    <i class="fa-solid fa-gears"></i>
+                    <span>Cài đặt hệ thống</span>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <button class="theme-toggle-btn" id="theme-toggle">
+                    <i class="fas fa-sun"></i>
+                    <span>Giao diện Sáng</span>
+                </button>
+                <div style="font-size: 0.75rem; text-align: center; color: var(--text-muted);">
+                    VNPT AI Lab © 2026
+                </div>
+            </div>
+        </aside>
+
+        <!-- MOBILE HEADER -->
+        <header class="mobile-header">
+            <button class="menu-toggle" id="menu-toggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="brand-name" style="font-size: 1rem; margin-bottom: 0;">VNPT - Reward</div>
+            <div class="api-status-badge" style="padding: 4px 10px; font-size: 0.7rem;">
+                <div class="status-dot" id="status-dot-mobile"></div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            
+            <!-- TOP BAR STATUS -->
+            <div class="top-bar">
+                <div class="page-title">
+                    <h1>Hệ thống Quản lý Khen thưởng</h1>
+                    <p>Theo dõi điểm khuyến khích & tự động tính tiền thưởng nhân viên</p>
+                </div>
+                <div class="api-status-badge">
+                    <div class="status-dot" id="status-dot"></div>
+                    <span id="status-text">Đang kiểm tra kết nối...</span>
+                </div>
+            </div>
+
+            <!-- TAB 1: DASHBOARD VIEW -->
+            <section class="page-view active" id="dashboard-view">
+                <!-- METRIC CARDS -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span>TỔNG ĐIỂM KHUYẾN KHÍCH</span>
+                            <i class="fa-solid fa-award metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="kpi-total-points">0</div>
+                        <div class="metric-subtitle">Điểm thưởng lũy kế trong tháng</div>
+                    </div>
+                    
+                    <div class="metric-card accent">
+                        <div class="metric-header">
+                            <span>TỔNG TIỀN THƯỞNG (5K/ĐIỂM)</span>
+                            <i class="fa-solid fa-wallet metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="kpi-total-money">0 đ</div>
+                        <div class="metric-subtitle">Tương ứng toàn đơn vị chi trả</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span>NHÂN SỰ ĐƯỢC KHEN THƯỞNG</span>
+                            <i class="fa-solid fa-users metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="kpi-employees">0</div>
+                        <div class="metric-subtitle font-weight-500">Mã nhân sự độc nhất nhận điểm</div>
+                    </div>
+                    
+                    <div class="metric-card accent">
+                        <div class="metric-header">
+                            <span>THÁNG HIỆN HÀNH</span>
+                            <i class="fa-solid fa-calendar-check metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="kpi-current-month" style="font-size: 1.5rem; padding: 6px 0;">--</div>
+                        <div class="metric-subtitle">Kỳ đối soát điểm thưởng</div>
+                    </div>
+                </div>
+
+                <!-- CHARTS LAYOUT -->
+                <div class="dashboard-layout">
+                    <!-- Team Points Bar Chart -->
+                    <div class="glass-card">
+                        <div class="card-title">Phân tích Điểm Khuyến khích theo Tổ</div>
+                        <div style="height: 300px; position: relative;">
+                            <canvas id="teamChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Top Employees Doughnut Chart -->
+                    <div class="glass-card">
+                        <div class="card-title">Top 5 Nhân viên Xuất sắc</div>
+                        <div style="height: 300px; position: relative;">
+                            <canvas id="employeeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: REWARD FORM VIEW -->
+            <section class="page-view" id="reward-view">
+                <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+                    <div class="card-title">
+                        <span><i class="fa-solid fa-plus" style="color: var(--color-accent); margin-right: 8px;"></i>Ghi Nhận Điểm Khuyến Khích Mới</span>
+                    </div>
+                    
+                    <form class="reward-form" id="reward-points-form">
+                        <div class="form-row">
+                            <!-- Mã nhân viên -->
+                            <div class="form-group">
+                                <label for="reward-id">Mã Nhân Viên <span style="color: var(--color-danger)">*</span></label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-id-card"></i>
+                                    <input type="text" id="reward-id" class="form-control" placeholder="Ví dụ: VNPT018220" required autocomplete="off">
+                                </div>
+                            </div>
+                            
+                            <!-- Tên nhân viên -->
+                            <div class="form-group">
+                                <label for="reward-name">Tên Nhân Viên <span style="color: var(--color-danger)">*</span></label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-user"></i>
+                                    <input type="text" id="reward-name" class="form-control" placeholder="Ví dụ: Phan Tiến Dũng" required autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <!-- Tổ/Bộ phận -->
+                            <div class="form-group">
+                                <label for="reward-team">Tổ / Bộ Phận</label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-sitemap"></i>
+                                    <input type="text" id="reward-team" class="form-control" placeholder="Hệ thống tự động tra cứu Tổ..." readonly style="background: hsla(var(--hue-primary), 20%, 5%, 0.4); cursor: not-allowed;">
+                                </div>
+                                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Tổ sẽ tự động điền dựa trên hồ sơ nhân sự có sẵn.</span>
+                            </div>
+                            
+                            <!-- Tháng thưởng -->
+                            <div class="form-group">
+                                <label for="reward-month">Tháng Thưởng (Định dạng: TTrrrr) <span style="color: var(--color-danger)">*</span></label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                    <input type="text" id="reward-month" class="form-control" placeholder="Ví dụ: 52026 (tháng 5/2026)" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <!-- Điểm khuyến khích -->
+                            <div class="form-group">
+                                <label for="reward-points">Số Điểm Thưởng Khuyến Khích <span style="color: var(--color-danger)">*</span></label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-star"></i>
+                                    <input type="number" id="reward-points" class="form-control" placeholder="Nhập số điểm (ví dụ: 100)" min="1" required>
+                                </div>
+                                <div class="money-preview">
+                                    <span>Thành tiền quy đổi (1 điểm = 5.000đ):</span>
+                                    <span id="money-amount-preview" style="font-size: 1.25rem;">0 đ</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lý do khen thưởng -->
+                        <div class="form-group">
+                            <label for="reward-reason">Lý Do / Nội Dung Công Việc Hoàn Thành <span style="color: var(--color-danger)">*</span></label>
+                            <textarea id="reward-reason" class="form-control" rows="4" placeholder="Nhập lý do chi tiết, thời gian và địa điểm thực hiện..." style="padding-left: 14px;" required></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                            <button type="reset" class="btn btn-secondary">Nhập Lại</button>
+                            <button type="submit" class="btn btn-primary" id="submit-reward-btn">Lưu Điểm Khuyến khích</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 3: HISTORY & STATS VIEW -->
+            <section class="page-view" id="history-view">
+                
+                <!-- Advanced Filters -->
+                <div class="glass-card" style="margin-bottom: 1.5rem;">
+                    <div class="card-title">Bộ Lọc & Tìm Kiếm Nâng Cao</div>
+                    <div class="filter-bar">
+                        <!-- Search Name -->
+                        <div class="input-container filter-input">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-name" class="form-control" placeholder="Tìm theo tên nhân viên...">
+                        </div>
+                        <!-- Search ID -->
+                        <div class="input-container filter-input">
+                            <i class="fa-solid fa-barcode"></i>
+                            <input type="text" id="search-id" class="form-control" placeholder="Tìm theo mã nhân viên...">
+                        </div>
+                        <!-- Search Team -->
+                        <div class="input-container filter-input">
+                            <i class="fa-solid fa-building-user"></i>
+                            <input type="text" id="search-team" class="form-control" placeholder="Tìm theo tổ...">
+                        </div>
+                        <!-- Month filter -->
+                        <select id="filter-month" class="form-control filter-select" style="padding-left: 14px;">
+                            <option value="all">Tất cả các tháng</option>
+                        </select>
+                        <!-- Export Button -->
+                        <button class="btn btn-primary" id="export-csv-btn" style="padding: 10px 20px;">
+                            <i class="fa-solid fa-file-excel"></i> Xuất Báo Cáo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Complete History Table -->
+                <div class="glass-card">
+                    <div class="card-title">
+                        Danh Sách Chi Tiết Khen Thưởng
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="history-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px;">STT</th>
+                                    <th>Kỳ Thưởng</th>
+                                    <th>Mã NV</th>
+                                    <th>Họ Và Tên</th>
+                                    <th>Tổ / Bộ Phận</th>
+                                    <th>Điểm</th>
+                                    <th>Tiền Thưởng</th>
+                                    <th style="width: 35%;">Lý do / Công việc</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body">
+                                <!-- Chèn động bằng Javascript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Aggregate Statistics Grid -->
+                <div class="stats-container">
+                    <!-- Team Statistics -->
+                    <div class="glass-card">
+                        <div class="card-title">Thống Kê Tổng Hợp Theo Tổ</div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tổ / Bộ Phận</th>
+                                        <th>Số Nhân Sự</th>
+                                        <th>Tổng Điểm</th>
+                                        <th>Tổng Tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="team-stats-tbody">
+                                    <!-- Chèn động bằng Javascript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Employee Statistics -->
+                    <div class="glass-card">
+                        <div class="card-title">Thống Kê Tổng Hợp Theo Nhân Viên</div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Họ Và Tên</th>
+                                        <th>Tổ</th>
+                                        <th>Tổng Điểm</th>
+                                        <th>Tổng Tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="employee-stats-tbody">
+                                    <!-- Chèn động bằng Javascript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: SYSTEM CONFIG VIEW -->
+            <section class="page-view" id="config-view">
+                <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+                    <div class="card-title">
+                        <span><i class="fa-solid fa-gears" style="color: var(--color-primary); margin-right: 8px;"></i>Cấu Hình Tích Hợp Google Sheets API</span>
+                    </div>
+                    
+                    <div class="config-group">
+                        <h3>Trạng thái kết nối Google Sheets</h3>
+                        <p>Bằng cách kết nối trực tiếp với Google Sheets của bạn thông qua Google Apps Script Web App API, mọi thay đổi, lưu trữ điểm mới hoặc truy vấn thống kê sẽ được đồng bộ hóa trực tiếp theo thời gian thực.</p>
+                        
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label for="api-url-input">Google Apps Script Web App URL <span style="color: var(--color-danger)">*</span></label>
+                            <div class="input-container" style="margin-top: 8px;">
+                                <i class="fa-solid fa-link"></i>
+                                <input type="url" id="api-url-input" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="save-api-btn">
+                            <i class="fa-solid fa-floppy-disk"></i> Lưu & Kết Nối Trực Tiếp
+                        </button>
+                    </div>
+
+                    <div class="glass-card" style="border-color: hsla(var(--hue-primary), 20%, 30%, 0.25); background: hsla(var(--hue-primary), 20%, 5%, 0.2);">
+                        <h4 style="margin-bottom: 12px; font-weight: 700; color: var(--color-primary);"><i class="fa-solid fa-circle-question"></i> Làm thế nào để lấy URL Web App API?</h4>
+                        <ol style="margin-left: 20px; font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px; line-height: 1.5;">
+                            <li>Mở bảng tính Google Sheets của bạn.</li>
+                            <li>Chọn <strong>Tiện ích mở rộng (Extensions)</strong> &gt; <strong>Apps Script</strong>.</li>
+                            <li>Tạo mới hoặc dán tệp mã nguồn <code>google-apps-script.js</code> vào trình soạn thảo.</li>
+                            <li>Nhấp biểu tượng <strong>Lưu</strong>, sau đó nhấn <strong>Triển khai (Deploy)</strong> &gt; <strong>Triển khai mới (New deployment)</strong>.</li>
+                            <li>Chọn loại cấu hình là <strong>Ứng dụng web (Web app)</strong>.</li>
+                            <li>Thiết lập Quyền thực thi dưới danh nghĩa: <strong>Tôi (Me)</strong> và Ai có quyền truy cập: <strong>Mọi người (Anyone)</strong>.</li>
+                            <li>Nhấn <strong>Triển khai (Deploy)</strong>, cấp các quyền truy cập tài khoản Google nếu được nhắc.</li>
+                            <li>Sao chép <strong>URL ứng dụng web</strong> nhận được và dán vào hộp nhập liệu phía trên.</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Core Logic Connection -->
+    <script src="app.js"></script>
+</body>
+</html>
