@@ -1075,8 +1075,8 @@ const MOCK_RECORDS = [
         "STT": 6,
         "Tháng": "52026",
         "Mã nhân viên": "VNPT018221",
-        "Tên Nhân viên": "Nguyễn Văn An",
-        "Tổ": "Tổ Hạ tầng Vĩnh Yên",
+        "Tên Nhân viên": "Trần Anh Tuấn",
+        "Tổ": "Tổ Hạ tầng Tam Đảo",
         "Điểm khuyến khích": 180,
         "Tiền thưởng": 900000,
         "Lý do": "Hỗ trợ lắp đặt thiết bị MAN-E và cấu hình định tuyến cho trạm viễn thông trung tâm Vĩnh Yên",
@@ -1956,12 +1956,16 @@ function renderHistoryTable(records) {
     }
     
     records.forEach(r => {
+        const maNV = r["Mã nhân viên"];
+        const emp = state.employees.find(e => e.maNV === maNV);
+        const displayName = emp ? emp.tenNV : (r["Tên Nhân viên"] || "Chưa xác định");
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${r["STT"]}</td>
             <td><span class="badge primary">${formatMonthDisplay(r["Tháng"])}</span></td>
             <td><code>${r["Mã nhân viên"]}</code></td>
-            <td><strong>${r["Tên Nhân viên"]}</strong></td>
+            <td><strong>${displayName}</strong></td>
             <td>${r["Tổ"] || '<span style="color: var(--text-muted); font-style: italic;">Chưa phân tổ</span>'}</td>
             <td style="font-weight: 700;">${formatNumber(r["Điểm khuyến khích"])}</td>
             <td style="color: var(--color-accent); font-weight: 700;">${formatCurrency(r["Tiền thưởng"])}</td>
@@ -2044,9 +2048,12 @@ function renderStatsTables(activeRecords) {
     activeRecords.forEach(r => {
         const key = r["Mã nhân viên"];
         if (!empStats[key]) {
+            const emp = state.employees.find(e => e.maNV === key);
+            const displayName = emp ? emp.tenNV : (r["Tên Nhân viên"] || "Chưa xác định");
+            
             empStats[key] = {
                 id: r["Mã nhân viên"],
-                name: r["Tên Nhân viên"],
+                name: displayName,
                 team: r["Tổ"] || "Chưa phân tổ",
                 points: 0,
                 money: 0
@@ -2092,17 +2099,23 @@ function renderCharts() {
     const teamValues = Object.values(teamData);
 
     // Tính toán dữ liệu biểu đồ Nhân viên (Top 5)
-    const empData = {};
+    const empPointsMap = {};
     activeRecords.forEach(r => {
-        const name = r["Tên Nhân viên"];
-        empData[name] = (empData[name] || 0) + (r["Điểm khuyến khích"] || 0);
+        const maNV = r["Mã nhân viên"];
+        if (maNV) {
+            empPointsMap[maNV] = (empPointsMap[maNV] || 0) + (r["Điểm khuyến khích"] || 0);
+        }
     });
     
-    const sortedEmps = Object.entries(empData)
+    const sortedEmps = Object.entries(empPointsMap)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5);
         
-    const empLabels = sortedEmps.map(x => x[0]);
+    const empLabels = sortedEmps.map(x => {
+        const maNV = x[0];
+        const emp = state.employees.find(e => e.maNV === maNV);
+        return emp ? emp.tenNV : maNV;
+    });
     const empValues = sortedEmps.map(x => x[1]);
 
     // Vẽ biểu đồ cột cho các Tổ
