@@ -1825,7 +1825,7 @@ function setupEventListeners() {
 
 // OPEN EDIT MODAL
 function openEditModal(stt) {
-    const record = state.records.find(r => r["STT"] === stt);
+    const record = state.records.find(r => Number(r["STT"]) === Number(stt));
     if (!record) {
         showToast("Không tìm thấy bản ghi cần chỉnh sửa!", "error");
         return;
@@ -1868,7 +1868,32 @@ async function handleEditSubmit() {
     
     const timestamp = getNowTimestampString();
     
-    // GỬI LIVE LÊN GOOGLE SHEETS
+    // Cập nhật tạm thời offline trong bộ đệm ngay lập tức (Optimistic UI) để mang lại trải nghiệm mượt mà nhất
+    const idx = state.records.findIndex(r => Number(r["STT"]) === Number(stt));
+    if (idx !== -1) {
+        state.records[idx]["Tháng"] = thang;
+        state.records[idx]["Điểm khuyến khích"] = diem;
+        state.records[idx]["Tiền thưởng"] = diem * 5000;
+        state.records[idx]["Lý do"] = lyDo;
+        state.records[idx]["Thời điểm"] = timestamp;
+        localStorage.setItem('demo_records', JSON.stringify(state.records));
+        
+        // Vẽ lại giao diện ngay lập tức mà không phải chờ API phản hồi
+        extractEmployeeDatabase();
+        populateMonthSelectors();
+        updateUI();
+    }
+    
+    // Đóng modal và trả trạng thái nút lưu ngay lập tức để người dùng không cảm thấy ứng dụng bị treo
+    const editModal = document.getElementById('edit-modal');
+    if (editModal) editModal.classList.remove('active');
+    
+    if (editBtn) {
+        editBtn.disabled = false;
+        editBtn.textContent = "Lưu Thay Đổi";
+    }
+    
+    // GỬI LIVE LÊN GOOGLE SHEETS TRONG NỀN
     if (state.isLive && state.apiUrl) {
         try {
             const payload = {
@@ -1880,6 +1905,8 @@ async function handleEditSubmit() {
                 timestamp
             };
             
+            showToast("Đang đồng bộ thay đổi chỉnh sửa lên Google Sheets...", "info");
+            
             await fetch(state.apiUrl, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -1889,54 +1916,25 @@ async function handleEditSubmit() {
                 body: JSON.stringify(payload)
             });
             
-            showToast("Yêu cầu sửa đã được gửi lên Google Sheets!", "success");
+            showToast("Thay đổi đã được cập nhật! (Lưu ý: Đảm bảo bạn đã Triển khai phiên bản mới của Apps Script để lưu vĩnh viễn)", "success");
             
-            // Cập nhật tạm thời offline trong bộ đệm để người dùng thấy ngay lập tức
-            const idx = state.records.findIndex(r => r["STT"] === stt);
-            if (idx !== -1) {
-                state.records[idx]["Tháng"] = thang;
-                state.records[idx]["Điểm khuyến khích"] = diem;
-                state.records[idx]["Tiền thưởng"] = diem * 5000;
-                state.records[idx]["Lý do"] = lyDo;
-                state.records[idx]["Thời điểm"] = timestamp;
-                localStorage.setItem('demo_records', JSON.stringify(state.records));
-            }
-            
+            // Tải lại dữ liệu kiểm chứng sau 2.5 giây
             setTimeout(async () => {
                 await refreshData();
-                if (editBtn) {
-                    editBtn.disabled = false;
-                    editBtn.textContent = "Lưu Thay Đổi";
-                }
-                const editModal = document.getElementById('edit-modal');
-                if (editModal) editModal.classList.remove('active');
-            }, 2000);
+            }, 2500);
             
         } catch (error) {
-            showToast("Lỗi gửi yêu cầu chỉnh sửa lên Sheets. Đang sửa Offline.", "error");
+            showToast("Lỗi đồng bộ lên Google Sheets. Dữ liệu đang được lưu tạm Offline.", "error");
             console.error(error);
-            editOffline(stt, thang, diem, lyDo, timestamp);
-            if (editBtn) {
-                editBtn.disabled = false;
-                editBtn.textContent = "Lưu Thay Đổi";
-            }
-            const editModal = document.getElementById('edit-modal');
-            if (editModal) editModal.classList.remove('active');
         }
     } else {
         // CHẾ ĐỘ OFFLINE DEMO
-        editOffline(stt, thang, diem, lyDo, timestamp);
-        if (editBtn) {
-            editBtn.disabled = false;
-            editBtn.textContent = "Lưu Thay Đổi";
-        }
-        const editModal = document.getElementById('edit-modal');
-        if (editModal) editModal.classList.remove('active');
+        showToast("Đã cập nhật bản ghi thành công (Offline Demo)!", "success");
     }
 }
 
 function editOffline(stt, thang, diem, lyDo, timestamp) {
-    const idx = state.records.findIndex(r => r["STT"] === stt);
+    const idx = state.records.findIndex(r => Number(r["STT"]) === Number(stt));
     if (idx !== -1) {
         state.records[idx]["Tháng"] = thang;
         state.records[idx]["Điểm khuyến khích"] = diem;
@@ -1956,7 +1954,7 @@ function editOffline(stt, thang, diem, lyDo, timestamp) {
 
 // HANDLE DELETE RECORD
 async function handleDeleteRecord(stt) {
-    const record = state.records.find(r => r["STT"] === stt);
+    const record = state.records.find(r => Number(r["STT"]) === Number(stt));
     if (!record) return;
     
     const maNV = record["Mã nhân viên"];
@@ -1966,10 +1964,18 @@ async function handleDeleteRecord(stt) {
     const isConfirmed = confirm(`Bạn có chắc chắn muốn XÓA bản ghi điểm của [${displayName}]?\n- Số điểm: ${formatNumber(record["Điểm khuyến khích"])} điểm\n- Lý do: ${record["Lý do"]}\n\nHành động này không thể hoàn tác.`);
     if (!isConfirmed) return;
     
-    // GỬI LIVE LÊN GOOGLE SHEETS
+    // Cập nhật giao diện xóa tức thì (Optimistic UI)
+    state.records = state.records.filter(r => Number(r["STT"]) !== Number(stt));
+    localStorage.setItem('demo_records', JSON.stringify(state.records));
+    
+    extractEmployeeDatabase();
+    populateMonthSelectors();
+    updateUI();
+    
+    // GỬI LIVE LÊN GOOGLE SHEETS TRONG NỀN
     if (state.isLive && state.apiUrl) {
         try {
-            showToast("Đang gửi yêu cầu xóa lên Google Sheets...", "info");
+            showToast("Đang đồng bộ yêu cầu xóa lên Google Sheets...", "info");
             const payload = {
                 action: "delete",
                 stt
@@ -1984,29 +1990,25 @@ async function handleDeleteRecord(stt) {
                 body: JSON.stringify(payload)
             });
             
-            showToast("Yêu cầu xóa đã được gửi lên Google Sheets!", "success");
+            showToast("Đã xóa thành công! (Lưu ý: Đảm bảo bạn đã Triển khai phiên bản mới của Apps Script để lưu vĩnh viễn)", "success");
             
-            // Cập nhật tạm thời offline trong bộ đệm
-            state.records = state.records.filter(r => r["STT"] !== stt);
-            localStorage.setItem('demo_records', JSON.stringify(state.records));
-            
+            // Tải lại dữ liệu kiểm chứng sau 2.5 giây
             setTimeout(async () => {
                 await refreshData();
-            }, 2000);
+            }, 2500);
             
         } catch (error) {
-            showToast("Lỗi gửi yêu cầu xóa lên Sheets. Đang xóa Offline.", "error");
+            showToast("Lỗi gửi yêu cầu xóa lên Google Sheets. Dữ liệu đang xóa tạm Offline.", "error");
             console.error(error);
-            deleteOffline(stt);
         }
     } else {
         // CHẾ ĐỘ OFFLINE DEMO
-        deleteOffline(stt);
+        showToast("Đã xóa bản ghi thành công (Offline Demo)!", "success");
     }
 }
 
 function deleteOffline(stt) {
-    state.records = state.records.filter(r => r["STT"] !== stt);
+    state.records = state.records.filter(r => Number(r["STT"]) !== Number(stt));
     localStorage.setItem('demo_records', JSON.stringify(state.records));
     
     extractEmployeeDatabase();
