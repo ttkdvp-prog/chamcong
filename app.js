@@ -1793,6 +1793,227 @@ function setupEventListeners() {
             exportToCSV();
         });
     }
+
+    // Modal Edit Event Listeners
+    const editModal = document.getElementById('edit-modal');
+    const editForm = document.getElementById('edit-record-form');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    
+    const hideModal = () => {
+        if (editModal) {
+            editModal.classList.remove('active');
+        }
+    };
+    
+    if (closeModalBtn) closeModalBtn.addEventListener('click', hideModal);
+    if (cancelEditBtn) cancelEditBtn.addEventListener('click', hideModal);
+    
+    if (editModal) {
+        editModal.addEventListener('click', (e) => {
+            if (e.target === editModal) hideModal();
+        });
+    }
+    
+    if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await handleEditSubmit();
+        });
+    }
+}
+
+// OPEN EDIT MODAL
+function openEditModal(stt) {
+    const record = state.records.find(r => r["STT"] === stt);
+    if (!record) {
+        showToast("Không tìm thấy bản ghi cần chỉnh sửa!", "error");
+        return;
+    }
+    
+    const maNV = record["Mã nhân viên"];
+    const emp = state.employees.find(e => e.maNV === maNV);
+    const displayName = emp ? emp.tenNV : (record["Tên Nhân viên"] || "Chưa xác định");
+    
+    document.getElementById('edit-stt').value = stt;
+    document.getElementById('edit-name').value = displayName;
+    document.getElementById('edit-id').value = maNV;
+    document.getElementById('edit-month').value = record["Tháng"] || "";
+    document.getElementById('edit-points').value = record["Điểm khuyến khích"] || "";
+    document.getElementById('edit-reason').value = record["Lý do"] || "";
+    
+    const editModal = document.getElementById('edit-modal');
+    if (editModal) {
+        editModal.classList.add('active');
+    }
+}
+
+// HANDLE EDIT FORM SUBMIT
+async function handleEditSubmit() {
+    const stt = parseInt(document.getElementById('edit-stt').value);
+    const thang = document.getElementById('edit-month').value.trim();
+    const diem = parseFloat(document.getElementById('edit-points').value) || 0;
+    const lyDo = document.getElementById('edit-reason').value.trim();
+    
+    if (!thang || !diem || !lyDo) {
+        showToast("Vui lòng điền đầy đủ các thông tin bắt buộc!", "error");
+        return;
+    }
+    
+    const editBtn = document.getElementById('save-edit-btn');
+    if (editBtn) {
+        editBtn.disabled = true;
+        editBtn.textContent = "Đang xử lý...";
+    }
+    
+    const timestamp = getNowTimestampString();
+    
+    // GỬI LIVE LÊN GOOGLE SHEETS
+    if (state.isLive && state.apiUrl) {
+        try {
+            const payload = {
+                action: "edit",
+                stt,
+                thang,
+                diem,
+                lyDo,
+                timestamp
+            };
+            
+            await fetch(state.apiUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            showToast("Yêu cầu sửa đã được gửi lên Google Sheets!", "success");
+            
+            // Cập nhật tạm thời offline trong bộ đệm để người dùng thấy ngay lập tức
+            const idx = state.records.findIndex(r => r["STT"] === stt);
+            if (idx !== -1) {
+                state.records[idx]["Tháng"] = thang;
+                state.records[idx]["Điểm khuyến khích"] = diem;
+                state.records[idx]["Tiền thưởng"] = diem * 5000;
+                state.records[idx]["Lý do"] = lyDo;
+                state.records[idx]["Thời điểm"] = timestamp;
+                localStorage.setItem('demo_records', JSON.stringify(state.records));
+            }
+            
+            setTimeout(async () => {
+                await refreshData();
+                if (editBtn) {
+                    editBtn.disabled = false;
+                    editBtn.textContent = "Lưu Thay Đổi";
+                }
+                const editModal = document.getElementById('edit-modal');
+                if (editModal) editModal.classList.remove('active');
+            }, 2000);
+            
+        } catch (error) {
+            showToast("Lỗi gửi yêu cầu chỉnh sửa lên Sheets. Đang sửa Offline.", "error");
+            console.error(error);
+            editOffline(stt, thang, diem, lyDo, timestamp);
+            if (editBtn) {
+                editBtn.disabled = false;
+                editBtn.textContent = "Lưu Thay Đổi";
+            }
+            const editModal = document.getElementById('edit-modal');
+            if (editModal) editModal.classList.remove('active');
+        }
+    } else {
+        // CHẾ ĐỘ OFFLINE DEMO
+        editOffline(stt, thang, diem, lyDo, timestamp);
+        if (editBtn) {
+            editBtn.disabled = false;
+            editBtn.textContent = "Lưu Thay Đổi";
+        }
+        const editModal = document.getElementById('edit-modal');
+        if (editModal) editModal.classList.remove('active');
+    }
+}
+
+function editOffline(stt, thang, diem, lyDo, timestamp) {
+    const idx = state.records.findIndex(r => r["STT"] === stt);
+    if (idx !== -1) {
+        state.records[idx]["Tháng"] = thang;
+        state.records[idx]["Điểm khuyến khích"] = diem;
+        state.records[idx]["Tiền thưởng"] = diem * 5000;
+        state.records[idx]["Lý do"] = lyDo;
+        state.records[idx]["Thời điểm"] = timestamp;
+        
+        localStorage.setItem('demo_records', JSON.stringify(state.records));
+        
+        extractEmployeeDatabase();
+        populateMonthSelectors();
+        updateUI();
+        
+        showToast("Đã cập nhật bản ghi thành công (Offline Demo)!", "success");
+    }
+}
+
+// HANDLE DELETE RECORD
+async function handleDeleteRecord(stt) {
+    const record = state.records.find(r => r["STT"] === stt);
+    if (!record) return;
+    
+    const maNV = record["Mã nhân viên"];
+    const emp = state.employees.find(e => e.maNV === maNV);
+    const displayName = emp ? emp.tenNV : (record["Tên Nhân viên"] || "Chưa xác định");
+    
+    const isConfirmed = confirm(`Bạn có chắc chắn muốn XÓA bản ghi điểm của [${displayName}]?\n- Số điểm: ${formatNumber(record["Điểm khuyến khích"])} điểm\n- Lý do: ${record["Lý do"]}\n\nHành động này không thể hoàn tác.`);
+    if (!isConfirmed) return;
+    
+    // GỬI LIVE LÊN GOOGLE SHEETS
+    if (state.isLive && state.apiUrl) {
+        try {
+            showToast("Đang gửi yêu cầu xóa lên Google Sheets...", "info");
+            const payload = {
+                action: "delete",
+                stt
+            };
+            
+            await fetch(state.apiUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            showToast("Yêu cầu xóa đã được gửi lên Google Sheets!", "success");
+            
+            // Cập nhật tạm thời offline trong bộ đệm
+            state.records = state.records.filter(r => r["STT"] !== stt);
+            localStorage.setItem('demo_records', JSON.stringify(state.records));
+            
+            setTimeout(async () => {
+                await refreshData();
+            }, 2000);
+            
+        } catch (error) {
+            showToast("Lỗi gửi yêu cầu xóa lên Sheets. Đang xóa Offline.", "error");
+            console.error(error);
+            deleteOffline(stt);
+        }
+    } else {
+        // CHẾ ĐỘ OFFLINE DEMO
+        deleteOffline(stt);
+    }
+}
+
+function deleteOffline(stt) {
+    state.records = state.records.filter(r => r["STT"] !== stt);
+    localStorage.setItem('demo_records', JSON.stringify(state.records));
+    
+    extractEmployeeDatabase();
+    populateMonthSelectors();
+    updateUI();
+    
+    showToast("Đã xóa bản ghi thành công (Offline Demo)!", "success");
 }
 
 // SAVE OFFLINE DEMO RECORD
@@ -1951,7 +2172,7 @@ function renderHistoryTable(records) {
     tbody.innerHTML = '';
     
     if (records.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Không tìm thấy dữ liệu phù hợp với điều kiện tìm kiếm.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted);">Không tìm thấy dữ liệu phù hợp với điều kiện tìm kiếm.</td></tr>`;
         return;
     }
     
@@ -1979,6 +2200,16 @@ function renderHistoryTable(records) {
                     ` : ''}
                 </div>
             </td>
+            <td>
+                <div class="action-buttons-container">
+                    <button class="btn-action edit" title="Sửa bản ghi này">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button class="btn-action delete" title="Xóa bản ghi này">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </td>
         `;
         
         // Thêm trình xử lý sự kiện click để mở rộng lý do
@@ -1997,6 +2228,21 @@ function renderHistoryTable(records) {
                     expandBtn.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
                     expandBtn.classList.add('expanded');
                 }
+            });
+        }
+        
+        // Thêm sự kiện click Sửa/Xóa
+        const editBtn = tr.querySelector('.btn-action.edit');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                openEditModal(r["STT"]);
+            });
+        }
+        
+        const deleteBtn = tr.querySelector('.btn-action.delete');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                handleDeleteRecord(r["STT"]);
             });
         }
         

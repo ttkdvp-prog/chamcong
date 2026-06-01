@@ -115,6 +115,98 @@ function doPost(e) {
       payload = e.parameter;
     }
     
+    const action = payload.action || "add";
+    
+    // THAO TÁC XÓA BẢN GHI
+    if (action === "delete") {
+      const sttToDelete = parseInt(payload.stt);
+      if (isNaN(sttToDelete)) {
+        return createJsonResponse({ status: "error", message: "Thiếu thông tin STT cần xóa." });
+      }
+      
+      const values = sheet.getDataRange().getValues();
+      if (values.length <= 1) {
+        return createJsonResponse({ status: "error", message: "Bảng tính không có dữ liệu để xóa." });
+      }
+      
+      const headers = values[0].map(h => h.toString().trim());
+      const colStt = headers.indexOf("STT");
+      if (colStt === -1) {
+        return createJsonResponse({ status: "error", message: "Không tìm thấy cột STT trên bảng tính." });
+      }
+      
+      for (let i = 1; i < values.length; i++) {
+        if (parseInt(values[i][colStt]) === sttToDelete) {
+          sheet.deleteRow(i + 1); // Trình tự dòng là 1-indexed, headers là dòng 1, dòng i tương ứng i+1
+          return createJsonResponse({ status: "success", message: "Đã xóa bản ghi thành công!" });
+        }
+      }
+      return createJsonResponse({ status: "error", message: "Không tìm thấy bản ghi có STT = " + sttToDelete });
+    }
+    
+    // THAO TÁC SỬA BẢN GHI
+    if (action === "edit") {
+      const sttToEdit = parseInt(payload.stt);
+      if (isNaN(sttToEdit)) {
+        return createJsonResponse({ status: "error", message: "Thiếu thông tin STT cần sửa." });
+      }
+      
+      const values = sheet.getDataRange().getValues();
+      if (values.length <= 1) {
+        return createJsonResponse({ status: "error", message: "Bảng tính không có dữ liệu để chỉnh sửa." });
+      }
+      
+      const headers = values[0].map(h => h.toString().trim());
+      const colIndexMap = {};
+      headers.forEach((h, i) => {
+        colIndexMap[h] = i;
+      });
+      
+      if (colIndexMap["STT"] === undefined) {
+        return createJsonResponse({ status: "error", message: "Không tìm thấy cột STT trên bảng tính." });
+      }
+      
+      let targetRowIndex = -1;
+      for (let i = 1; i < values.length; i++) {
+        if (parseInt(values[i][colIndexMap["STT"]]) === sttToEdit) {
+          targetRowIndex = i + 1; // 1-indexed row index
+          break;
+        }
+      }
+      
+      if (targetRowIndex === -1) {
+        return createJsonResponse({ status: "error", message: "Không tìm thấy bản ghi có STT = " + sttToEdit });
+      }
+      
+      // Tiến hành cập nhật các trường
+      if (payload.thang !== undefined && colIndexMap["Tháng"] !== undefined) {
+        sheet.getRange(targetRowIndex, colIndexMap["Tháng"] + 1).setValue(payload.thang);
+      }
+      if (payload.diem !== undefined && colIndexMap["Điểm khuyến khích"] !== undefined) {
+        const score = parseFloat(payload.diem) || 0;
+        sheet.getRange(targetRowIndex, colIndexMap["Điểm khuyến khích"] + 1).setValue(score);
+        if (colIndexMap["Tiền thưởng"] !== undefined) {
+          sheet.getRange(targetRowIndex, colIndexMap["Tiền thưởng"] + 1).setValue(score * 5000);
+        }
+      }
+      if (payload.lyDo !== undefined && colIndexMap["Lý do"] !== undefined) {
+        sheet.getRange(targetRowIndex, colIndexMap["Lý do"] + 1).setValue(payload.lyDo);
+      }
+      if (colIndexMap["Thời điểm"] !== undefined) {
+        sheet.getRange(targetRowIndex, colIndexMap["Thời điểm"] + 1).setValue(payload.timestamp || getFormattedTimestamp());
+      }
+      
+      return createJsonResponse({
+        status: "success",
+        message: "Cập nhật bản ghi thành công!",
+        data: {
+          stt: sttToEdit,
+          tienThuong: (parseFloat(payload.diem) || 0) * 5000
+        }
+      });
+    }
+    
+    // MẶC ĐỊNH: THÊM MỚI BẢN GHI (ADD)
     if (!payload.maNV || !payload.tenNV) {
       return createJsonResponse({ status: "error", message: "Thiếu thông tin Mã nhân viên hoặc Tên nhân viên." });
     }

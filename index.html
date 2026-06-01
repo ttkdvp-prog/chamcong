@@ -400,7 +400,8 @@
                                     <th>Tổ / Bộ Phận</th>
                                     <th>Điểm</th>
                                     <th>Tiền Thưởng</th>
-                                    <th style="width: 35%;">Lý do / Công việc</th>
+                                    <th style="width: 30%;">Lý do / Công việc</th>
+                                    <th style="width: 110px; text-align: center;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="history-table-body">
@@ -461,6 +462,63 @@
 
     <!-- TOAST NOTIFICATION CONTAINER -->
     <div id="toast-container" class="toast-container"></div>
+
+    <!-- EDIT RECORD MODAL DIALOG -->
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-content glass-card" style="max-width: 600px; width: 90%;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-pen-to-square" style="color: var(--color-primary); margin-right: 8px;"></i>Chỉnh Sửa Bản Ghi</h2>
+                <button type="button" class="modal-close" id="close-modal-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="edit-record-form" class="reward-form" style="padding: 0; background: none; border: none; box-shadow: none; backdrop-filter: none;">
+                <input type="hidden" id="edit-stt">
+                
+                <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group">
+                        <label>Họ Và Tên</label>
+                        <div class="input-container">
+                            <i class="fa-solid fa-user" style="opacity: 0.7;"></i>
+                            <input type="text" id="edit-name" class="form-control" placeholder="Họ tên..." readonly style="border-style: dashed;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Mã Nhân Viên</label>
+                        <div class="input-container">
+                            <i class="fa-solid fa-id-card" style="opacity: 0.7;"></i>
+                            <input type="text" id="edit-id" class="form-control" placeholder="Mã NV..." readonly style="border-style: dashed;">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group">
+                        <label for="edit-month">Tháng (Định dạng: TTrrrr) <span style="color: var(--color-danger)">*</span></label>
+                        <div class="input-container">
+                            <i class="fa-solid fa-calendar-days"></i>
+                            <input type="text" id="edit-month" class="form-control" required placeholder="Ví dụ: 52026">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-points">Số Điểm (Dương cho Thưởng, Âm cho Phạt) <span style="color: var(--color-danger)">*</span></label>
+                        <div class="input-container">
+                            <i class="fa-solid fa-star"></i>
+                            <input type="number" id="edit-points" class="form-control" required placeholder="Nhập số điểm...">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit-reason">Lý Do / Nội Dung Công Việc <span style="color: var(--color-danger)">*</span></label>
+                    <textarea id="edit-reason" class="form-control" rows="3" required placeholder="Nhập lý do chi tiết..." style="padding-left: 14px;"></textarea>
+                </div>
+                
+                <div class="modal-footer" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" id="cancel-edit-btn">Hủy Bỏ</button>
+                    <button type="submit" class="btn btn-primary" id="save-edit-btn">Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Core Logic Connection -->
     <script src="app.js"></script>
