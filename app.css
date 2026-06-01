@@ -216,6 +216,8 @@ body {
     padding: 2.5rem 3rem;
     min-height: 100vh;
     transition: margin-left var(--transition-normal);
+    container-type: inline-size;
+    container-name: main-content;
 }
 
 /* MOBILE TOGGLE & HEADER */
@@ -570,8 +572,9 @@ body {
     justify-content: space-between;
 }
 
-.autocomplete-item:hover {
+.autocomplete-item:hover, .autocomplete-item.focused {
     background: var(--bg-card-hover);
+    color: var(--color-accent);
 }
 
 .autocomplete-item .sub-info {
@@ -622,6 +625,48 @@ body {
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
+    transition: all var(--transition-fast);
+}
+
+.data-table th.sortable-header:hover {
+    color: var(--color-accent);
+    background: var(--bg-card-hover);
+}
+
+.data-table th.sorted {
+    color: var(--color-accent);
+}
+
+.expandable-reason-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 250px;
+}
+
+.reason-text {
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+.btn-expand-reason {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.btn-expand-reason:hover {
+    background: var(--color-primary-glow);
+    color: var(--color-accent);
 }
 
 .data-table td {
@@ -736,13 +781,24 @@ body {
     margin-bottom: 1rem;
 }
 
-/* RESPONSIVENESS */
-@media (max-width: 1024px) {
+/* RESPONSIVENESS VIA CONTAINER QUERIES (EXPERT LEVEL) */
+@container main-content (max-width: 960px) {
     .dashboard-layout, .stats-container {
         grid-template-columns: 1fr;
     }
 }
 
+@container main-content (max-width: 580px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Media query handles structural viewport breakdown */
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);
@@ -762,4 +818,45 @@ body {
         align-items: flex-start;
         gap: 12px;
     }
+}
+
+/* PREMIUM DROPDOWN SELECT STYLING */
+select.form-control {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='hsl(215, 12%, 68%)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 16px;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+.light-theme select.form-control {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='hsl(215, 15%, 45%)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+select.form-control option {
+    background-color: hsl(var(--hue-primary), 28%, 10%);
+    color: var(--text-main);
+    padding: 12px;
+}
+
+.light-theme select.form-control option {
+    background-color: hsl(var(--hue-primary), 30%, 98%);
+    color: var(--text-main);
+}
+
+/* Styling for Read-only fields */
+.form-control[readonly] {
+    background-color: hsla(var(--hue-primary), 20%, 8%, 0.35);
+    color: var(--text-muted);
+    border-style: dashed;
+    cursor: not-allowed;
+    user-select: none;
+}
+
+.light-theme .form-control[readonly] {
+    background-color: hsla(var(--hue-primary), 30%, 92%, 0.5);
 }

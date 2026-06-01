@@ -9,7 +9,11 @@ let state = {
         searchTeam: ''
     },
     apiUrl: localStorage.getItem('reward_api_url') || 'https://script.google.com/macros/s/AKfycbwNXm3dPsURS3F-5dX4CW-R0mTaTCBKf9yHhj0stX3Qq5CvWncwUQi56KcKmSHSxKsDbw/exec',
-    isLive: false
+    isLive: false,
+    sort: {
+        key: 'STT',
+        direction: 'asc'
+    }
 };
 
 // INITIAL MOCK DATA (Lấy từ sheet thực tế của người dùng và bổ sung mẫu)
@@ -1115,13 +1119,71 @@ document.addEventListener("DOMContentLoaded", () => {
 // INITIALIZE APP
 async function initApp() {
     loadLocalSettings();
-    showToast("Đang khởi tạo ứng dụng...", "info");
     
-    // Nạp dữ liệu
-    await refreshData();
+    // 1. Tải dữ liệu đệm từ LocalStorage hoặc Mock trước để giao diện hiển thị ngay lập tức (Dưới 0.1s)
+    loadMockData();
+    extractEmployeeDatabase();
+    populateMonthSelectors();
+    updateUI();
     
-    // Mặc định chọn tab dashboard
-    switchTab('dashboard');
+    // 2. Kích hoạt xử lý định tuyến theo Hash ngay tức thì
+    handleHashRouting();
+    
+    // 3. Tiến hành đồng bộ dữ liệu ngầm song song không gây chặn UI
+    fetchLiveSyncInBackground();
+}
+
+// Tiến trình đồng bộ dữ liệu ngầm bất đồng bộ song song
+async function fetchLiveSyncInBackground() {
+    try {
+        // Đồng bộ danh bạ nhân viên từ sheet trước
+        await fetchDanhBaLive();
+        // Cập nhật gợi ý autocomplete dựa trên danh bạ vừa tải về
+        extractEmployeeDatabase();
+        updateUI();
+    } catch (e) {
+        console.error("Lỗi đồng bộ danh bạ ngầm:", e);
+    }
+    
+    try {
+        // Đồng bộ các bản ghi khen thưởng thực tế từ Google Sheets
+        await refreshData(false);
+    } catch (e) {
+        console.error("Lỗi đồng bộ khen thưởng ngầm:", e);
+    }
+}
+
+// FETCH DANH BẠ TRỰC TIẾP TỪ SHEET MÀ KHÔNG CẦN CHỜ GOOGLE APPS SCRIPT API
+async function fetchDanhBaLive() {
+    try {
+        const url = "https://docs.google.com/spreadsheets/d/1GlFBYQm7aWxpB0Uh7iekskhWy2o0nhxNbmcOSNU5oCY/gviz/tq?tqx=out:csv&sheet=danhba";
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const csvText = await res.text();
+        
+        const lines = csvText.split('\n');
+        const liveEmployees = [];
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+            if (cols.length >= 4) {
+                const to = cols[1];
+                const maNV = cols[2];
+                const tenNV = cols[3];
+                if (maNV && tenNV) {
+                    liveEmployees.push({ maNV, tenNV, to });
+                }
+            }
+        }
+        if (liveEmployees.length > 0) {
+            // Ghi đè vào MOCK_EMPLOYEES để chạy offline/demo mượt mà với dữ liệu thật
+            MOCK_EMPLOYEES.length = 0;
+            MOCK_EMPLOYEES.push(...liveEmployees);
+            state.employees = [...liveEmployees];
+        }
+    } catch(e) {
+        console.error("Không thể tải danh bạ trực tiếp", e);
+    }
 }
 
 // LOAD SETTINGS FROM LOCALSTORAGE
@@ -1143,14 +1205,20 @@ function loadLocalSettings() {
 }
 
 // REFRESH DATA FROM API OR MOCK
-async function refreshData() {
+async function refreshData(isManual = false) {
     const statusDot = document.getElementById('status-dot');
     const statusText = document.getElementById('status-text');
+    const statusDotMobile = document.getElementById('status-dot-mobile');
+    
+    const setStatusClass = (cls) => {
+        if (statusDot) statusDot.className = `status-dot ${cls}`;
+        if (statusDotMobile) statusDotMobile.className = `status-dot ${cls}`;
+    };
     
     if (state.apiUrl) {
         try {
-            statusText.textContent = "Đang kết nối...";
-            statusDot.className = "status-dot";
+            if (statusText) statusText.textContent = "Đang kết nối...";
+            setStatusClass("");
             
             const response = await fetch(state.apiUrl, { method: 'GET' });
             const result = await response.json();
@@ -1163,27 +1231,33 @@ async function refreshData() {
                 // Nếu có danh sách danh bạ từ sheet danhba, lưu trữ làm autocomplete chính thức
                 if (result.employees && result.employees.length > 0) {
                     state.employees = result.employees;
+                    MOCK_EMPLOYEES.length = 0;
+                    MOCK_EMPLOYEES.push(...result.employees);
                 }
                 
                 state.isLive = true;
                 
-                statusDot.className = "status-dot connected";
-                statusText.textContent = "Đã kết nối trực tiếp";
-                showToast("Đã tải dữ liệu trực tiếp từ Google Sheets!", "success");
+                setStatusClass("connected");
+                if (statusText) statusText.textContent = "Đã kết nối trực tiếp";
+                if (isManual) {
+                    showToast("Đã tải dữ liệu trực tiếp từ Google Sheets!", "success");
+                }
             } else {
                 throw new Error(result.message || "Lỗi API");
             }
         } catch (error) {
             console.error("Cảnh báo: Không thể tải dữ liệu từ API, chuyển sang Mock Data.", error);
             loadMockData();
-            statusDot.className = "status-dot";
-            statusText.textContent = "Chế độ Ngoại tuyến";
-            showToast("Kết nối API lỗi. Đã tải dữ liệu Demo tích hợp sẵn.", "error");
+            setStatusClass("");
+            if (statusText) statusText.textContent = "Chế độ Ngoại tuyến";
+            if (isManual) {
+                showToast("Kết nối API lỗi. Đã tải dữ liệu Demo tích hợp sẵn.", "error");
+            }
         }
     } else {
         loadMockData();
-        statusDot.className = "status-dot";
-        statusText.textContent = "Chế độ Demo (Chưa cấu hình)";
+        setStatusClass("");
+        if (statusText) statusText.textContent = "Chế độ Demo (Chưa cấu hình)";
     }
     
     extractEmployeeDatabase();
@@ -1220,15 +1294,52 @@ function loadMockData() {
     }
 }
 
+// POPULATE EMPLOYEE DROPDOWN SELECT FROM STATE
+function populateEmployeeSelect() {
+    const selectEl = document.getElementById('reward-employee-select');
+    if (!selectEl) return;
+    
+    // Lưu lại giá trị hiện tại (nếu có)
+    const currentVal = selectEl.value;
+    
+    selectEl.innerHTML = '<option value="">-- Click để chọn nhân viên từ danh bạ --</option>';
+    
+    // Sắp xếp danh sách nhân viên theo tên tiếng Việt để dễ tìm kiếm trong dropdown
+    const sortedEmployees = [...state.employees];
+    sortedEmployees.sort((a, b) => {
+        const nameA = (a.tenNV || "").toString();
+        const nameB = (b.tenNV || "").toString();
+        return nameA.localeCompare(nameB, 'vi', { sensitivity: 'accent' });
+    });
+    
+    sortedEmployees.forEach(emp => {
+        if (!emp || !emp.maNV) return;
+        const option = document.createElement('option');
+        option.value = emp.maNV;
+        // Hiển thị dạng: "Họ và Tên (Mã NV) - Tổ"
+        option.textContent = `${emp.tenNV} (${emp.maNV}) - ${emp.to || "Chưa chia tổ"}`;
+        selectEl.appendChild(option);
+    });
+    
+    // Phục hồi giá trị cũ nếu vẫn tồn tại
+    if (currentVal && sortedEmployees.some(emp => emp.maNV === currentVal)) {
+        selectEl.value = currentVal;
+    } else {
+        selectEl.value = "";
+    }
+}
+
 // EXTRACT UNIQUE EMPLOYEES FOR AUTOCOMPLETE
 function extractEmployeeDatabase() {
     // Nếu ở chế độ Live và đã có dữ liệu danh bạ chính thức từ sheet danhba, giữ nguyên
     if (state.isLive && state.employees && state.employees.length > 0) {
+        populateEmployeeSelect();
         return;
     }
     // Nếu ở chế độ Demo/Offline, sử dụng danh sách nhân viên danh bạ tĩnh để chạy thử đầy đủ
     if (!state.isLive && typeof MOCK_EMPLOYEES !== 'undefined' && MOCK_EMPLOYEES.length > 0) {
         state.employees = [...MOCK_EMPLOYEES];
+        populateEmployeeSelect();
         return;
     }
     const empMap = new Map();
@@ -1248,6 +1359,7 @@ function extractEmployeeDatabase() {
         }
     });
     state.employees = Array.from(empMap.values());
+    populateEmployeeSelect();
 }
 
 // POPULATE MONTH SELECTION DROPDOWNS
@@ -1298,12 +1410,13 @@ function setupEventListeners() {
     const menuItems = document.querySelectorAll('.menu-item');
     menuItems.forEach(item => {
         item.addEventListener('click', () => {
-            menuItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
             const tabName = item.getAttribute('data-tab');
             switchTab(tabName);
         });
     });
+
+    // Lắng nghe thay đổi hash trên URL để định tuyến lại tức thì
+    window.addEventListener('hashchange', handleHashRouting);
 
     // Mobile Menu Toggle
     const menuToggle = document.getElementById('menu-toggle');
@@ -1331,27 +1444,65 @@ function setupEventListeners() {
             localStorage.setItem('reward_api_url', urlInput);
             state.apiUrl = urlInput;
             showToast("Đã lưu thiết lập API Google Sheets!", "success");
-            refreshData();
+            refreshData(true);
         });
     }
 
-    // Search and Filters in Lịch sử
+    // Search and Filters in Lịch sử (với Debounce 300ms tối ưu hiệu năng)
+    const debouncedUpdateUI = debounce(() => {
+        updateUI();
+    }, 300);
+
     document.getElementById('search-name').addEventListener('input', (e) => {
         state.filters.searchName = e.target.value.toLowerCase();
-        updateUI();
+        debouncedUpdateUI();
     });
     document.getElementById('search-id').addEventListener('input', (e) => {
         state.filters.searchId = e.target.value.toLowerCase();
-        updateUI();
+        debouncedUpdateUI();
     });
     document.getElementById('search-team').addEventListener('input', (e) => {
         state.filters.searchTeam = e.target.value.toLowerCase();
-        updateUI();
+        debouncedUpdateUI();
     });
     document.getElementById('filter-month').addEventListener('change', (e) => {
         state.selectedMonth = e.target.value;
         updateUI();
     });
+
+    // Cài đặt click tiêu đề bảng để sắp xếp cột (Sorting)
+    const tableHeaders = document.querySelectorAll('#history-table th');
+    const sortKeys = [
+        'STT',
+        'Tháng',
+        'Mã nhân viên',
+        'Tên Nhân viên',
+        'Tổ',
+        'Điểm khuyến khích',
+        'Tiền thưởng',
+        null // 'Lý do / Công việc' không sắp xếp
+    ];
+    
+    tableHeaders.forEach((th, idx) => {
+        const key = sortKeys[idx];
+        if (key) {
+            th.style.cursor = 'pointer';
+            th.classList.add('sortable-header');
+            th.addEventListener('click', () => {
+                if (state.sort.key === key) {
+                    state.sort.direction = state.sort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    state.sort.key = key;
+                    state.sort.direction = 'asc';
+                }
+                updateSortHeaderIcons();
+                updateUI();
+            });
+        }
+    });
+    
+    // Khởi tạo các icon sắp xếp mặc định
+    updateSortHeaderIcons();
 
     // Form logic: Auto-calculate reward money
     const pointsInput = document.getElementById('reward-points');
@@ -1364,22 +1515,38 @@ function setupEventListeners() {
         });
     }
 
-    // Form logic: Autocomplete for Name and ID
+    // Form logic: Dropdown Select for Employee from Danh Bạ
+    const employeeSelect = document.getElementById('reward-employee-select');
     const nameInput = document.getElementById('reward-name');
     const idInput = document.getElementById('reward-id');
     const teamInput = document.getElementById('reward-team');
 
-    setupAutocomplete(nameInput, 'tenNV', (selected) => {
-        nameInput.value = selected.tenNV;
-        idInput.value = selected.maNV;
-        teamInput.value = selected.to;
-    });
-
-    setupAutocomplete(idInput, 'maNV', (selected) => {
-        nameInput.value = selected.tenNV;
-        idInput.value = selected.maNV;
-        teamInput.value = selected.to;
-    });
+    if (employeeSelect) {
+        employeeSelect.addEventListener('change', (e) => {
+            const selectedMaNV = e.target.value;
+            if (selectedMaNV) {
+                const selectedEmp = state.employees.find(emp => emp.maNV === selectedMaNV);
+                if (selectedEmp) {
+                    nameInput.value = selectedEmp.tenNV || "";
+                    idInput.value = selectedEmp.maNV || "";
+                    teamInput.value = selectedEmp.to || "";
+                    
+                    // Thêm hiệu ứng highlight nhẹ để thông báo tự động điền thành công
+                    [nameInput, idInput, teamInput].forEach(el => {
+                        el.style.transition = 'background-color 0.3s ease';
+                        el.style.backgroundColor = 'rgba(var(--hue-accent), 0.15)';
+                        setTimeout(() => {
+                            el.style.backgroundColor = '';
+                        }, 500);
+                    });
+                }
+            } else {
+                nameInput.value = "";
+                idInput.value = "";
+                teamInput.value = "";
+            }
+        });
+    }
 
     // Form submission
     const submitBtn = document.getElementById('submit-reward-btn');
@@ -1490,64 +1657,21 @@ function saveOffline(payload) {
     showToast("Đã lưu điểm khuyến khích thành công (Offline Demo)!", "success");
 }
 
-// AUTOCOMPLETE HELPER
-function setupAutocomplete(inputElement, field, onSelect) {
-    if (!inputElement) return;
-    const listElement = document.createElement('ul');
-    listElement.className = 'autocomplete-list';
-    inputElement.parentNode.appendChild(listElement);
-    
-    inputElement.addEventListener('input', (e) => {
-        const query = e.target.value.trim().toLowerCase();
-        listElement.innerHTML = '';
-        
-        if (!query) {
-            listElement.classList.remove('active');
-            return;
-        }
-        
-        const matches = state.employees.filter(emp => {
-            if (!emp) return false;
-            const maNV = emp.maNV ? emp.maNV.toString().toLowerCase() : "";
-            const tenNV = emp.tenNV ? emp.tenNV.toString().toLowerCase() : "";
-            const to = emp.to ? emp.to.toString().toLowerCase() : "";
-            
-            return maNV.includes(query) || tenNV.includes(query) || to.includes(query);
-        }).slice(0, 8); // Tối đa 8 gợi ý cho phong phú
-        
-        if (matches.length === 0) {
-            listElement.classList.remove('active');
-            return;
-        }
-        
-        matches.forEach(match => {
-            const li = document.createElement('li');
-            li.className = 'autocomplete-item';
-            li.innerHTML = `
-                <span><strong>${match.tenNV}</strong> (${match.maNV})</span>
-                <span class="sub-info">${match.to || "Chưa chia tổ"}</span>
-            `;
-            li.addEventListener('mousedown', (ev) => {
-                ev.preventDefault();
-                onSelect(match);
-                listElement.classList.remove('active');
-            });
-            listElement.appendChild(li);
-        });
-        
-        listElement.classList.add('active');
-    });
-    
-    // Ẩn danh sách khi nhấp chuột ra ngoài
-    document.addEventListener('click', (e) => {
-        if (e.target !== inputElement && !listElement.contains(e.target)) {
-            listElement.classList.remove('active');
-        }
-    });
-}
+
 
 // SWITCH VIEWS / TABS
 function switchTab(tabName) {
+    window.location.hash = tabName;
+}
+
+// HANDLE HASH ROUTING (Deep Linking & Forward/Backward Navigation)
+function handleHashRouting() {
+    const hash = window.location.hash.replace('#', '') || 'dashboard';
+    
+    // Kiểm tra tính hợp lệ của tab
+    const validTabs = ['dashboard', 'reward', 'history', 'config'];
+    const tabName = validTabs.includes(hash) ? hash : 'dashboard';
+    
     const views = document.querySelectorAll('.page-view');
     views.forEach(v => v.classList.remove('active'));
     
@@ -1556,7 +1680,7 @@ function switchTab(tabName) {
         targetView.classList.add('active');
     }
     
-    // Cập nhật tiêu đề sidebar nếu cần
+    // Cập nhật menu-item active
     document.querySelectorAll('.menu-item').forEach(item => {
         if (item.getAttribute('data-tab') === tabName) {
             item.classList.add('active');
@@ -1566,7 +1690,16 @@ function switchTab(tabName) {
     });
 
     if (tabName === 'dashboard') {
-        renderCharts();
+        // Đảm bảo canvas đã hoàn tất vẽ
+        setTimeout(() => {
+            renderCharts();
+        }, 50);
+    }
+    
+    // Tự động cuộn main-content lên đầu trang khi đổi tab
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        mainContent.scrollTop = 0;
     }
 }
 
@@ -1580,6 +1713,25 @@ function updateUI() {
         const matchTeam = !state.filters.searchTeam || (r["Tổ"] || "").toLowerCase().includes(state.filters.searchTeam);
         
         return matchMonth && matchName && matchId && matchTeam;
+    });
+
+    // 1.2 Thực hiện sắp xếp (Sorting) tối ưu
+    filteredRecords.sort((a, b) => {
+        let valA = a[state.sort.key];
+        let valB = b[state.sort.key];
+        
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+        
+        // Handle numeric / float comparison safely
+        if (state.sort.key === 'STT' || state.sort.key === 'Điểm khuyến khích' || state.sort.key === 'Tiền thưởng') {
+            valA = parseFloat(valA) || 0;
+            valB = parseFloat(valB) || 0;
+        }
+        
+        if (valA < valB) return state.sort.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return state.sort.direction === 'asc' ? 1 : -1;
+        return 0;
     });
 
     // 2. Tính toán tổng số lượng cho KPIs (dựa trên tháng được chọn)
@@ -1621,8 +1773,37 @@ function renderHistoryTable(records) {
             <td>${r["Tổ"] || '<span style="color: var(--text-muted); font-style: italic;">Chưa phân tổ</span>'}</td>
             <td style="font-weight: 700;">${formatNumber(r["Điểm khuyến khích"])}</td>
             <td style="color: var(--color-accent); font-weight: 700;">${formatCurrency(r["Tiền thưởng"])}</td>
-            <td><span title="${r["Lý do"]}">${truncateString(r["Lý do"], 60)}</span></td>
+            <td>
+                <div class="expandable-reason-container">
+                    <span class="reason-text" title="Nhấp nút bên cạnh để mở rộng/thu gọn lý do">${truncateString(r["Lý do"], 60)}</span>
+                    ${r["Lý do"] && r["Lý do"].length > 60 ? `
+                        <button class="btn-expand-reason" title="Xem thêm chi tiết lý do">
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            </td>
         `;
+        
+        // Thêm trình xử lý sự kiện click để mở rộng lý do
+        const expandBtn = tr.querySelector('.btn-expand-reason');
+        if (expandBtn) {
+            expandBtn.addEventListener('click', () => {
+                const textSpan = tr.querySelector('.reason-text');
+                const isExpanded = expandBtn.classList.contains('expanded');
+                
+                if (isExpanded) {
+                    textSpan.textContent = truncateString(r["Lý do"], 60);
+                    expandBtn.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+                    expandBtn.classList.remove('expanded');
+                } else {
+                    textSpan.textContent = r["Lý do"];
+                    expandBtn.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
+                    expandBtn.classList.add('expanded');
+                }
+            });
+        }
+        
         tbody.appendChild(tr);
     });
 }
@@ -1706,43 +1887,6 @@ function renderStatsTables(activeRecords) {
 
 // RENDER CHARTS
 function renderCharts() {
-    if (typeof Chart === 'undefined') {
-        console.warn("Chart.js chưa được tải. Bỏ qua dựng biểu đồ.");
-        const teamCanvas = document.getElementById('teamChart');
-        const empCanvas = document.getElementById('employeeChart');
-        if (teamCanvas) {
-            teamCanvas.style.display = 'none';
-            const teamParent = teamCanvas.parentNode;
-            let warningText = teamParent.querySelector('.chart-warning');
-            if (!warningText) {
-                warningText = document.createElement('div');
-                warningText.className = 'chart-warning';
-                warningText.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:0.9rem;text-align:center;padding:20px;';
-                warningText.innerHTML = '<i class="fa-solid fa-wifi" style="margin-right:8px;"></i> Kết nối internet để tải biểu đồ';
-                teamParent.appendChild(warningText);
-            }
-        }
-        if (empCanvas) {
-            empCanvas.style.display = 'none';
-            const empParent = empCanvas.parentNode;
-            let warningText = empParent.querySelector('.chart-warning');
-            if (!warningText) {
-                warningText = document.createElement('div');
-                warningText.className = 'chart-warning';
-                warningText.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:0.9rem;text-align:center;padding:20px;';
-                warningText.innerHTML = '<i class="fa-solid fa-wifi" style="margin-right:8px;"></i> Kết nối internet để tải biểu đồ';
-                empParent.appendChild(warningText);
-            }
-        }
-        return;
-    }
-    
-    // Nếu có Chart, ẩn cảnh báo và vẽ bình thường
-    const warningTexts = document.querySelectorAll('.chart-warning');
-    warningTexts.forEach(el => el.remove());
-    document.getElementById('teamChart').style.display = 'block';
-    document.getElementById('employeeChart').style.display = 'block';
-
     const activeRecords = state.records.filter(r => state.selectedMonth === 'all' || r["Tháng"] === state.selectedMonth);
     
     // Tính toán dữ liệu biểu đồ Tổ
@@ -1870,14 +2014,15 @@ function renderCharts() {
 function toggleTheme() {
     const body = document.body;
     const themeBtn = document.getElementById('theme-toggle');
+    if (!themeBtn) return;
     
     if (body.classList.contains('light-theme')) {
         body.classList.remove('light-theme');
-        themeBtn.innerHTML = '<i class="fas fa-sun"></i> Giao diện Sáng';
+        themeBtn.innerHTML = '<i class="fas fa-sun"></i> <span>Giao diện Sáng</span>';
         showToast("Đã chuyển sang giao diện tối hiện đại!", "info");
     } else {
         body.classList.add('light-theme');
-        themeBtn.innerHTML = '<i class="fas fa-moon"></i> Giao diện Tối';
+        themeBtn.innerHTML = '<i class="fas fa-moon"></i> <span>Giao diện Tối</span>';
         showToast("Đã chuyển sang giao diện sáng trực quan!", "info");
     }
     
@@ -1959,7 +2104,51 @@ function showToast(message, type = "info") {
     }, 4000);
 }
 
-// UTILITY FUNCTIONS
+// UTILITY FUNCTIONS & SORT ICON UPDATER
+function updateSortHeaderIcons() {
+    const tableHeaders = document.querySelectorAll('#history-table th');
+    const sortKeys = [
+        'STT',
+        'Tháng',
+        'Mã nhân viên',
+        'Tên Nhân viên',
+        'Tổ',
+        'Điểm khuyến khích',
+        'Tiền thưởng',
+        null
+    ];
+    
+    tableHeaders.forEach((th, idx) => {
+        const key = sortKeys[idx];
+        if (!key) return;
+        
+        let iconSpan = th.querySelector('.sort-icon');
+        if (!iconSpan) {
+            iconSpan = document.createElement('span');
+            iconSpan.className = 'sort-icon';
+            th.appendChild(iconSpan);
+        }
+        
+        if (state.sort.key === key) {
+            iconSpan.innerHTML = state.sort.direction === 'asc' ? ' <i class="fa-solid fa-caret-up"></i>' : ' <i class="fa-solid fa-caret-down"></i>';
+            th.classList.add('sorted');
+        } else {
+            iconSpan.innerHTML = ' <i class="fa-solid fa-sort" style="opacity: 0.3; margin-left: 4px;"></i>';
+            th.classList.remove('sorted');
+        }
+    });
+}
+
+function debounce(func, delay = 300) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+}
+
 function formatCurrency(amount) {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 }

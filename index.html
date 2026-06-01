@@ -150,36 +150,48 @@
                     
                     <form class="reward-form" id="reward-points-form">
                         <div class="form-row">
+                            <!-- Chọn nhân viên từ danh bạ -->
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="reward-employee-select">Chọn Nhân Viên Từ Danh Bạ <span style="color: var(--color-danger)">*</span></label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                    <select id="reward-employee-select" class="form-control" required>
+                                        <option value="">-- Click để chọn nhân viên từ danh bạ --</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
                             <!-- Mã nhân viên -->
                             <div class="form-group">
-                                <label for="reward-id">Mã Nhân Viên <span style="color: var(--color-danger)">*</span></label>
+                                <label for="reward-id">Mã Nhân Viên</label>
                                 <div class="input-container">
-                                    <i class="fa-solid fa-id-card"></i>
-                                    <input type="text" id="reward-id" class="form-control" placeholder="Ví dụ: VNPT018220" required autocomplete="off">
+                                    <i class="fa-solid fa-id-card" style="opacity: 0.7;"></i>
+                                    <input type="text" id="reward-id" class="form-control" placeholder="Tự động điền..." readonly>
                                 </div>
                             </div>
                             
                             <!-- Tên nhân viên -->
                             <div class="form-group">
-                                <label for="reward-name">Tên Nhân Viên <span style="color: var(--color-danger)">*</span></label>
+                                <label for="reward-name">Tên Nhân Viên</label>
                                 <div class="input-container">
-                                    <i class="fa-solid fa-user"></i>
-                                    <input type="text" id="reward-name" class="form-control" placeholder="Ví dụ: Phan Tiến Dũng" required autocomplete="off">
+                                    <i class="fa-solid fa-user" style="opacity: 0.7;"></i>
+                                    <input type="text" id="reward-name" class="form-control" placeholder="Tự động điền..." readonly>
+                                </div>
+                            </div>
+
+                            <!-- Tổ/Bộ phận -->
+                            <div class="form-group">
+                                <label for="reward-team">Tổ / Bộ Phận</label>
+                                <div class="input-container">
+                                    <i class="fa-solid fa-sitemap" style="opacity: 0.7;"></i>
+                                    <input type="text" id="reward-team" class="form-control" placeholder="Tự động điền..." readonly>
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-row">
-                            <!-- Tổ/Bộ phận -->
-                            <div class="form-group">
-                                <label for="reward-team">Tổ / Bộ Phận</label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-sitemap"></i>
-                                    <input type="text" id="reward-team" class="form-control" placeholder="Nhập Tổ hoặc chọn gợi ý gợi nhắc...">
-                                </div>
-                                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Tổ sẽ tự động điền dựa trên hồ sơ nhân sự có sẵn.</span>
-                            </div>
-                            
                             <!-- Tháng thưởng -->
                             <div class="form-group">
                                 <label for="reward-month">Tháng Thưởng (Định dạng: TTrrrr) <span style="color: var(--color-danger)">*</span></label>
@@ -188,9 +200,7 @@
                                     <input type="text" id="reward-month" class="form-control" placeholder="Ví dụ: 52026 (tháng 5/2026)" required>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="form-row">
                             <!-- Điểm khuyến khích -->
                             <div class="form-group">
                                 <label for="reward-points">Số Điểm Thưởng Khuyến Khích <span style="color: var(--color-danger)">*</span></label>
