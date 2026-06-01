@@ -34,6 +34,7 @@ Treat any of these signals as "load this skill":
 4. **Streaming is polling done well.** True SSE is not available in Apps Script free tier. Implement "stream" as cursor-based incremental polling: client sends `since=<rowVersion>`; server returns only rows changed after that version. Frontend merges with optimistic in-memory state.
 5. **Optimistic UI + toast confirm.** Mutations update local cache immediately, show a toast with Undo for destructive actions, then reconcile with the server response.
 6. **Accessibility is non-negotiable.** Every interactive element has a label, focus ring, and keyboard path. The overlay (detail/edit) traps focus and restores it on close. Toasts use `role="status"` (or `role="alert"` for destructive).
+7. **Smart Autocomplete for Required Inputs.** To make data entry as convenient and error-free as possible, always implement smart autocomplete/suggestions for required text input fields (e.g. Employee ID or Name) by querying existing historical records or databases, auto-populating associated fields upon selection.
 
 ## Default tech choices
 
@@ -98,3 +99,4 @@ Open only what the current task needs:
 - Never put the API key in client source. Use `import.meta.env.VITE_API_KEY` and document it as a deploy-time secret.
 - Never produce a "skeleton with TODOs" version. The example resource (`Products`) must work end-to-end on first run.
 - Never use fixed pixel widths for the main content. Use `min-w-0` + `flex-1` + container queries so it reflows inside its scope.
+- Always implement smart autocomplete for required input fields to maximize data entry convenience and minimize errors.
