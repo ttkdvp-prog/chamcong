@@ -18,12 +18,50 @@
 
 function doGet(e) {
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheets()[0];
     const dataRange = sheet.getDataRange();
     const values = dataRange.getValues();
     
+    // Tự động kiểm tra và đọc sheet danh bạ nếu tồn tại để làm autocomplete
+    let employees = [];
+    const dbSheet = ss.getSheetByName("danhba") || ss.getSheetByName("Danh bạ") || ss.getSheetByName("danh ba");
+    if (dbSheet) {
+      const dbValues = dbSheet.getDataRange().getValues();
+      if (dbValues.length > 1) {
+        // Dọn dẹp tiêu đề cột và loại bỏ khoảng trắng thừa
+        const dbHeaders = dbValues[0].map(h => h.toString().trim().replace(/\s+/g, ' '));
+        let colMap = {};
+        dbHeaders.forEach((h, i) => {
+          colMap[h] = i;
+        });
+        
+        // Nhận diện cột theo tiêu đề
+        const colMaNV = colMap["Mã nhân viên"] !== undefined ? colMap["Mã nhân viên"] : colMap["Mã nhân viên "];
+        const colTenNV = colMap["Họ và tên"] !== undefined ? colMap["Họ và tên"] : colMap["Họ và tên "];
+        const colTo = colMap["Bộ phận"] !== undefined ? colMap["Bộ phận"] : (colMap["Bộ phận "] !== undefined ? colMap["Bộ phận "] : colMap["Tổ"]);
+        
+        if (colMaNV !== undefined && colTenNV !== undefined) {
+          for (let i = 1; i < dbValues.length; i++) {
+            const r = dbValues[i];
+            const maNV = r[colMaNV] ? r[colMaNV].toString().trim() : "";
+            const tenNV = r[colTenNV] ? r[colTenNV].toString().trim() : "";
+            const to = colTo !== undefined && r[colTo] ? r[colTo].toString().trim() : "";
+            
+            if (maNV && tenNV) {
+              employees.push({
+                maNV: maNV,
+                tenNV: tenNV,
+                to: to
+              });
+            }
+          }
+        }
+      }
+    }
+    
     if (values.length <= 1) {
-      return createJsonResponse({ status: "success", headers: [], data: [] });
+      return createJsonResponse({ status: "success", headers: [], data: [], employees: employees });
     }
     
     const headers = values[0].map(h => h.toString().trim());
@@ -38,7 +76,7 @@ function doGet(e) {
       
       headers.forEach((header, index) => {
         let val = row[index];
-        // Xử lý định dạng ngày tháng nếu cần
+        // Xử lý định dạng ngày tháng
         if (val instanceof Date) {
           val = Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
         }
@@ -50,7 +88,8 @@ function doGet(e) {
     return createJsonResponse({
       status: "success",
       headers: headers,
-      data: data
+      data: data,
+      employees: employees
     });
   } catch (error) {
     return createJsonResponse({ status: "error", message: error.toString() });

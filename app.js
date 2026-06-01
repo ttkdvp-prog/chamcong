@@ -161,6 +161,12 @@ async function refreshData() {
                 // Nhận diện dữ liệu thành công từ Google Sheets
                 // Map các tên cột sang định dạng chuẩn trong App
                 state.records = parseSheetsData(result.data);
+                
+                // Nếu có danh sách danh bạ từ sheet danhba, lưu trữ làm autocomplete chính thức
+                if (result.employees && result.employees.length > 0) {
+                    state.employees = result.employees;
+                }
+                
                 state.isLive = true;
                 
                 statusDot.className = "status-dot connected";
@@ -218,6 +224,10 @@ function loadMockData() {
 
 // EXTRACT UNIQUE EMPLOYEES FOR AUTOCOMPLETE
 function extractEmployeeDatabase() {
+    // Nếu ở chế độ Live và đã có dữ liệu danh bạ chính thức từ sheet danhba, giữ nguyên
+    if (state.isLive && state.employees && state.employees.length > 0) {
+        return;
+    }
     const empMap = new Map();
     state.records.forEach(r => {
         if (r["Mã nhân viên"] && r["Tên Nhân viên"]) {
