@@ -13,6 +13,1004 @@ let state = {
 };
 
 // INITIAL MOCK DATA (Lấy từ sheet thực tế của người dùng và bổ sung mẫu)
+const MOCK_EMPLOYEES = [
+    {
+        "maNV": "VNPT018256",
+        "tenNV": "Nguyễn Công Hoan",
+        "to": "Ban Giám đốc"
+    },
+    {
+        "maNV": "VNPT017946",
+        "tenNV": "Nguyễn Minh Cường",
+        "to": "Ban Giám đốc"
+    },
+    {
+        "maNV": "VNPT018467",
+        "tenNV": "Nguyễn Trung Kiên",
+        "to": "Ban Giám đốc"
+    },
+    {
+        "maNV": "VNPT018451",
+        "tenNV": "Nguyễn Tiến Thành",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018452",
+        "tenNV": "Trần Công Lộc",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018469",
+        "tenNV": "Nguyễn Anh Tuấn",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018477",
+        "tenNV": "Nguyễn Văn Trường",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018478",
+        "tenNV": "Lã Minh Tuấn",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018479",
+        "tenNV": "Bùi Văn Tình",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018480",
+        "tenNV": "Nguyễn Đức Mạnh",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018481",
+        "tenNV": "Hoàng Trung Kiên",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018482",
+        "tenNV": "Lê Đức Hạnh",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018489",
+        "tenNV": "Hoàng Mai Nam",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018496",
+        "tenNV": "Hoàng Trung Dũng",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018501",
+        "tenNV": "Vũ Mạnh Tuấn",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018526",
+        "tenNV": "Lương Ngọc Khánh",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018530",
+        "tenNV": "Bùi Chính Hữu",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018536",
+        "tenNV": "Ngô Mạnh Cường",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018589",
+        "tenNV": "Lê Anh Dũng",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018449",
+        "tenNV": "Đỗ Chu Đằng",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "VNPT018429",
+        "tenNV": "Bùi Văn Bản",
+        "to": "Tổ Hạ tầng Lạc Sơn"
+    },
+    {
+        "maNV": "VNPT018473",
+        "tenNV": "Kiều Toàn",
+        "to": "Tổ Hạ tầng Lạc Sơn"
+    },
+    {
+        "maNV": "VNPT018571",
+        "tenNV": "Hà Tuấn Lương",
+        "to": "Tổ Hạ tầng Lạc Sơn"
+    },
+    {
+        "maNV": "VNPT018568",
+        "tenNV": "Phạm Trung Thành",
+        "to": "Tổ Hạ tầng Lạc Sơn"
+    },
+    {
+        "maNV": "VNPT018410",
+        "tenNV": "Bùi Đăng Thành",
+        "to": "Tổ Hạ tầng Lương Sơn"
+    },
+    {
+        "maNV": "VNPT018549",
+        "tenNV": "Phùng Thế Hậu",
+        "to": "Tổ Hạ tầng Lương Sơn"
+    },
+    {
+        "maNV": "VNPT018552",
+        "tenNV": "Vương Xuân Tiến",
+        "to": "Tổ Hạ tầng Lương Sơn"
+    },
+    {
+        "maNV": "VNPT018558",
+        "tenNV": "Bạch Công Tường",
+        "to": "Tổ Hạ tầng Lương Sơn"
+    },
+    {
+        "maNV": "VNPT018566",
+        "tenNV": "Phạm Anh Tuấn",
+        "to": "Tổ Hạ tầng Lương Sơn"
+    },
+    {
+        "maNV": "VNPT018551",
+        "tenNV": "Phùng Thế Nam",
+        "to": "Tổ Hạ tầng Lương Sơn"
+    },
+    {
+        "maNV": "VNPT018553",
+        "tenNV": "Vũ Mạnh Khương",
+        "to": "Tổ Hạ tầng Lương Sơn"
+    },
+    {
+        "maNV": "VNPT018113",
+        "tenNV": "Dương Văn Dần",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "VNPT018130",
+        "tenNV": "Nguyễn Văn Đài",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "VNPT018139",
+        "tenNV": "Phan Việt Hùng",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "VNPT018140",
+        "tenNV": "Nguyễn Công Chương",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "VNPT018143",
+        "tenNV": "Lê Huy Sơn",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "VNPT018147",
+        "tenNV": "Lê Quang Tiến",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "VNPT018239",
+        "tenNV": "Bùi Trung Thành",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "VNPT018259",
+        "tenNV": "Ngô Tiến Mạnh",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "VNPT018168",
+        "tenNV": "Nguyễn Minh Chí",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "VNPT018220",
+        "tenNV": "Phan Tiến Dũng",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "VNPT018221",
+        "tenNV": "Trần Anh Tuấn",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "VNPT018246",
+        "tenNV": "Nguyễn Xuân Huy",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "VNPT018247",
+        "tenNV": "Trần Anh Quân",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "VNPT018248",
+        "tenNV": "Lê Minh Thuyết",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "VNPT018518",
+        "tenNV": "Nguyễn Văn Liệu",
+        "to": "Tổ Hạ tầng Tân Lạc"
+    },
+    {
+        "maNV": "VNPT018576",
+        "tenNV": "Bùi Văn Kiểm",
+        "to": "Tổ Hạ tầng Tân Lạc"
+    },
+    {
+        "maNV": "VNPT018577",
+        "tenNV": "Bùi Thanh Quang",
+        "to": "Tổ Hạ tầng Tân Lạc"
+    },
+    {
+        "maNV": "VNPT018593",
+        "tenNV": "Hà Văn Huẩn",
+        "to": "Tổ Hạ tầng Tân Lạc"
+    },
+    {
+        "maNV": "VNPT018594",
+        "tenNV": "Lò Văn Sơn",
+        "to": "Tổ Hạ tầng Tân Lạc"
+    },
+    {
+        "maNV": "VNPT018472",
+        "tenNV": "Hoàng Minh Tuấn",
+        "to": "Tổ Hạ tầng Tân Lạc"
+    },
+    {
+        "maNV": "VNPT018419",
+        "tenNV": "Bùi Văn Chung",
+        "to": "Tổ Hạ tầng Tân Lạc"
+    },
+    {
+        "maNV": "VNPT017817",
+        "tenNV": "Đỗ Tiến Thịnh",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "VNPT017847",
+        "tenNV": "Nguyễn Viết Tuân",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "VNPT017868",
+        "tenNV": "Trần Trọng Nghĩa",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "VNPT017886",
+        "tenNV": "Hà Khương Duy",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "VNPT017920",
+        "tenNV": "Trần Tuyên",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "VNPT017953",
+        "tenNV": "Hà Trí Kiên",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "VNPT017873",
+        "tenNV": "Ngô Minh Tuấn",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "VNPT017900",
+        "tenNV": "Nguyễn Trung Ánh",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "VNPT017935",
+        "tenNV": "Nguyễn Thành Long",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "VNPT017940",
+        "tenNV": "Nguyễn Tuấn Anh",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "VNPT017945",
+        "tenNV": "Tạ Tuấn Linh",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "VNPT017905",
+        "tenNV": "Chúc Mạnh Sơn",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "VNPT017827",
+        "tenNV": "Phùng Quang Hưng",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT017830",
+        "tenNV": "Trần Minh Tuấn",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT017854",
+        "tenNV": "Nguyễn Minh Trí",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT017858",
+        "tenNV": "Nguyễn Hữu Quân",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT017859",
+        "tenNV": "Nguyễn Anh Vũ",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT017911",
+        "tenNV": "Lê Trung Kiên",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT017912",
+        "tenNV": "Trần Thành Trung",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT017925",
+        "tenNV": "Đỗ Ngọc Sơn",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT017926",
+        "tenNV": "Nguyễn Mạnh Hà",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT017959",
+        "tenNV": "Nguyễn Văn Sâm",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT017960",
+        "tenNV": "Trần Hữu Lợi",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT018254",
+        "tenNV": "Cao Văn Huy",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT017962",
+        "tenNV": "Chử Hồng Thái",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "VNPT018110",
+        "tenNV": "Kiều Phúc Tuấn",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "VNPT018111",
+        "tenNV": "Phạm Minh Phú",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "VNPT018112",
+        "tenNV": "Lê Văn Trường",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "VNPT018119",
+        "tenNV": "Hoàng Xuân Sửu",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "VNPT018191",
+        "tenNV": "Khổng Doãn Anh",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "VNPT018202",
+        "tenNV": "Nguyễn Mạnh Hùng",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "VNPT018249",
+        "tenNV": "Nguyễn Xuân Hoàn",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "VNPT018252",
+        "tenNV": "Lưu Văn Dương",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "VNPT018250",
+        "tenNV": "Trần Duy Hưng",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "VNPT018454",
+        "tenNV": "Nguyễn Trung Kiên",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Hoà Bình"
+    },
+    {
+        "maNV": "VNPT018471",
+        "tenNV": "Nguyễn Mạnh Cường",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Hoà Bình"
+    },
+    {
+        "maNV": "VNPT018542",
+        "tenNV": "Bùi Đỗ Anh",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Hoà Bình"
+    },
+    {
+        "maNV": "VNPT018468",
+        "tenNV": "Nguyễn Thị Ánh Tuyết",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Hoà Bình"
+    },
+    {
+        "maNV": "VNPT017955",
+        "tenNV": "Nguyễn Trường Giang",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Phú Thọ"
+    },
+    {
+        "maNV": "VNPT017957",
+        "tenNV": "Lê Anh Tuấn",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Phú Thọ"
+    },
+    {
+        "maNV": "VNPT017958",
+        "tenNV": "Đào Quốc Khánh",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Phú Thọ"
+    },
+    {
+        "maNV": "VNPT017967",
+        "tenNV": "Ngô Duy Duyệt",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Phú Thọ"
+    },
+    {
+        "maNV": "VNPT017954",
+        "tenNV": "Trần Xuân Trường",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Phú Thọ"
+    },
+    {
+        "maNV": "VNPT018244",
+        "tenNV": "Phùng Văn Thọ",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Vĩnh Phúc"
+    },
+    {
+        "maNV": "VNPT018245",
+        "tenNV": "Đỗ Đức Hoàng",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Vĩnh Phúc"
+    },
+    {
+        "maNV": "VNPT017963",
+        "tenNV": "Lương Khánh Toàn",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT017964",
+        "tenNV": "Hà Thị Lý",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT017973",
+        "tenNV": "Lê Đức Anh",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT018234",
+        "tenNV": "Trần Nam Trung",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT017814",
+        "tenNV": "Cao Bá Khiêm",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT017947",
+        "tenNV": "Đặng Hồng Quân",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT017948",
+        "tenNV": "Nguyễn Mạnh Cường",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT017951",
+        "tenNV": "Nguyễn Hữu Lâm",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT017961",
+        "tenNV": "Đỗ Đức Phương",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT018095",
+        "tenNV": "Nguyễn Anh Dũng",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT018229",
+        "tenNV": "Nguyễn Mạnh Hà",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT018236",
+        "tenNV": "Nguyễn Văn Phây",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT018241",
+        "tenNV": "Trần Ngọc Ánh",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT018255",
+        "tenNV": "Nguyễn Trọng Thái",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT018470",
+        "tenNV": "Đỗ Tuấn Anh",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT018483",
+        "tenNV": "Dương Văn Nam",
+        "to": "Tổ Khai thác Hệ thống Phú Thọ"
+    },
+    {
+        "maNV": "VNPT018275",
+        "tenNV": "Vũ Thị Lan Phương",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT017797",
+        "tenNV": "Hà Mạnh Hùng",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT017801",
+        "tenNV": "Đỗ Văn Tuấn",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT017811",
+        "tenNV": "Đỗ Quang Thanh",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT017956",
+        "tenNV": "Nguyễn Thu Trang",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018090",
+        "tenNV": "Trần Văn Minh",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018091",
+        "tenNV": "Nguyễn Đức Lượng",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018092",
+        "tenNV": "Nguyễn Văn Luận",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018106",
+        "tenNV": "Nguyễn Thị Thúy",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018231",
+        "tenNV": "Nguyễn Cao Cường",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018233",
+        "tenNV": "Nguyễn Thị Phương Anh",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018243",
+        "tenNV": "Lê Hồng Minh",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018251",
+        "tenNV": "Vương Văn Trung",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018253",
+        "tenNV": "Nguyễn Quốc An",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018278",
+        "tenNV": "Trần Tiến Giang",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018345",
+        "tenNV": "Ngô Thị Anh",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018369",
+        "tenNV": "Phạm Đức Thuận",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018465",
+        "tenNV": "Trần Thị Thủy",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018488",
+        "tenNV": "Lê Minh Hưởng",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018528",
+        "tenNV": "Bùi Văn Lản",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018531",
+        "tenNV": "Hoàng Quốc Bình",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "VNPT018532",
+        "tenNV": "Nguyễn Mạnh Việt",
+        "to": "Tổ Tổng hợp"
+    },
+    {
+        "maNV": "CTV036461",
+        "tenNV": "Xa Văn Thực",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "CTV078681",
+        "tenNV": "Ngô thành Chung",
+        "to": "Tổ Hạ tầng Hòa Bình"
+    },
+    {
+        "maNV": "CTV029433",
+        "tenNV": "Nguyễn Trường Sơn",
+        "to": "Tổ Hạ tầng Lạc Sơn"
+    },
+    {
+        "maNV": "CTV046560",
+        "tenNV": "Bùi Văn Đông",
+        "to": "Tổ Hạ tầng Lạc Sơn"
+    },
+    {
+        "maNV": "CTV082727",
+        "tenNV": "Bùi Văn Giang",
+        "to": "Tổ Hạ tầng Lạc Sơn"
+    },
+    {
+        "maNV": "CTV084214",
+        "tenNV": "Bùi Văn Nhất",
+        "to": "Tổ Hạ tầng Lạc Sơn"
+    },
+    {
+        "maNV": "CTV029416",
+        "tenNV": "Nguyễn Minh Thắng",
+        "to": "Tổ Hạ tầng Lạc Thủy"
+    },
+    {
+        "maNV": "CTV029417",
+        "tenNV": "Hà Công Thảo",
+        "to": "Tổ Hạ tầng Lạc Thủy"
+    },
+    {
+        "maNV": "CTV029382",
+        "tenNV": "Bùi Đình Đông",
+        "to": "Tổ Hạ tầng Lương Sơn"
+    },
+    {
+        "maNV": "CTV036469",
+        "tenNV": "Nguyễn Văn Thi",
+        "to": "Tổ Hạ tầng Lương Sơn"
+    },
+    {
+        "maNV": "CTV042439",
+        "tenNV": "Mai Đức Nam",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "CTV069928",
+        "tenNV": "Nguyễn Minh Tuấn",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "CTV086512",
+        "tenNV": "Nguyễn Đức Hoàn",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "CTV091159",
+        "tenNV": "Đỗ Quang Trung",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "CTV091160",
+        "tenNV": "Nguyễn Thanh Giang",
+        "to": "Tổ Hạ tầng Phúc Yên"
+    },
+    {
+        "maNV": "CTV042460",
+        "tenNV": "Hoàng Đức Hữu",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "CTV062418",
+        "tenNV": "Lê Thế Long",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "CTV070708",
+        "tenNV": "Hà Đình Tiến",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "CTV071925",
+        "tenNV": "Lê Tiến Chức",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "CTV082862",
+        "tenNV": "Nguyễn Văn Thành",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "CTV084669",
+        "tenNV": "Nguyễn Ngọc Dương",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "CTV086297",
+        "tenNV": "Nguyễn Ngọc Linh",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "CTV086774",
+        "tenNV": "Nguyễn Văn Trại",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "CTV086776",
+        "tenNV": "Nguyễn Duy Mạnh",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "CTV091462",
+        "tenNV": "Lê Văn Hưng",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "CTV091463",
+        "tenNV": "Nguyễn Văn Lợi",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "CTV092750",
+        "tenNV": "Trần Đăng",
+        "to": "Tổ Hạ tầng Tam Đảo"
+    },
+    {
+        "maNV": "CTV029418",
+        "tenNV": "Bùi Hoàng Thương",
+        "to": "Tổ Hạ tầng Tân Lạc"
+    },
+    {
+        "maNV": "CTV029427",
+        "tenNV": "Khà Xuân Khuê",
+        "to": "Tổ Hạ tầng Tân Lạc"
+    },
+    {
+        "maNV": "CTV029428",
+        "tenNV": "Đào Sỹ Lâm",
+        "to": "Tổ Hạ tầng Tân Lạc"
+    },
+    {
+        "maNV": "CTV079748",
+        "tenNV": "Bùi Văn Tân",
+        "to": "Tổ Hạ tầng Tân Lạc"
+    },
+    {
+        "maNV": "CTV066417",
+        "tenNV": "Trần Duy Hiển",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "CTV074204",
+        "tenNV": "Hà Văn Nguyên",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "CTV080480",
+        "tenNV": "Đỗ Tiến Thành",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "CTV081921",
+        "tenNV": "Nguyễn Tiến Tùng",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "CTV091488",
+        "tenNV": "Dương Mạnh Hải",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "CTV092075",
+        "tenNV": "Nguyễn Quang Thuận",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "CTV092128",
+        "tenNV": "Nguyễn Long Giang",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "CTV092464",
+        "tenNV": "Hà Xuân Long",
+        "to": "Tổ Hạ tầng Thanh Ba"
+    },
+    {
+        "maNV": "CTV069549",
+        "tenNV": "Hoàng Đình Luân",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "CTV084971",
+        "tenNV": "Phùng Văn Hà",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "CTV087334",
+        "tenNV": "Nguyễn Anh Tuấn",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "CTV091489",
+        "tenNV": "Hà Văn Vinh",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "CTV091543",
+        "tenNV": "Trần Văn Lâm",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "CTV092039",
+        "tenNV": "Nguyễn Văn Thắng",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "CTV092620",
+        "tenNV": "Nguyễn Tiến Dần",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "CTV092623",
+        "tenNV": "Phạm Hoàng Cương",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "CTV092866",
+        "tenNV": "Nguyễn Quang Ngọc",
+        "to": "Tổ Hạ tầng Thanh Sơn"
+    },
+    {
+        "maNV": "CTV036557",
+        "tenNV": "Bùi Anh Tuấn",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "CTV039486",
+        "tenNV": "Nguyễn Bảo Linh",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "CTV091885",
+        "tenNV": "Đỗ Thành Ba",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "CTV092074",
+        "tenNV": "Nguyễn Đình Nam",
+        "to": "Tổ Hạ tầng Việt Trì"
+    },
+    {
+        "maNV": "CTV082815",
+        "tenNV": "Bùi Quốc Tuấn",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "CTV085395",
+        "tenNV": "Nguyễn Quang Nam",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "CTV086410",
+        "tenNV": "Nguyễn Hữu Ước",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "CTV087513",
+        "tenNV": "Nguyễn Văn Nam",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "CTV088063",
+        "tenNV": "Ôn Đức Phương",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "CTV088389",
+        "tenNV": "Đinh Quang Hải",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "CTV090324",
+        "tenNV": "Hoàng Văn Tú",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "CTV091280",
+        "tenNV": "Lê Anh Tuấn",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "CTV092027",
+        "tenNV": "Đặng Văn Dự",
+        "to": "Tổ Hạ tầng Vĩnh Yên"
+    },
+    {
+        "maNV": "CTV092097",
+        "tenNV": "Ngô Thượng Cương",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Phú Thọ"
+    },
+    {
+        "maNV": "CTV068057",
+        "tenNV": "Nguyễn Tuấn Linh",
+        "to": "Tổ Hỗ trợ Khách hàng Vip site Vĩnh Phúc"
+    },
+    {
+        "maNV": "CTV029466",
+        "tenNV": "Phan Nguyên Long",
+        "to": "Tổ Tổng hợp"
+    }
+];
+
 const MOCK_RECORDS = [
     {
         "STT": 1,
@@ -226,6 +1224,11 @@ function loadMockData() {
 function extractEmployeeDatabase() {
     // Nếu ở chế độ Live và đã có dữ liệu danh bạ chính thức từ sheet danhba, giữ nguyên
     if (state.isLive && state.employees && state.employees.length > 0) {
+        return;
+    }
+    // Nếu ở chế độ Demo/Offline, sử dụng danh sách nhân viên danh bạ tĩnh để chạy thử đầy đủ
+    if (!state.isLive && typeof MOCK_EMPLOYEES !== 'undefined' && MOCK_EMPLOYEES.length > 0) {
+        state.employees = [...MOCK_EMPLOYEES];
         return;
     }
     const empMap = new Map();
