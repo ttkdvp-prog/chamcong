@@ -31,22 +31,30 @@ function doGet(e) {
       if (dbValues.length > 1) {
         // Dọn dẹp tiêu đề cột và loại bỏ khoảng trắng thừa
         const dbHeaders = dbValues[0].map(h => h.toString().trim().replace(/\s+/g, ' '));
-        let colMap = {};
+        
+        let colMaNV = -1;
+        let colTenNV = -1;
+        let colTo = -1;
+        
         dbHeaders.forEach((h, i) => {
-          colMap[h] = i;
+          const lowerH = h.toLowerCase();
+          if (lowerH.includes("mã nhân viên") || lowerH.includes("ma nhan vien") || lowerH.includes("manv") || lowerH.includes("mã nv")) {
+            colMaNV = i;
+          }
+          if (lowerH.includes("họ và tên") || lowerH.includes("ho va ten") || lowerH.includes("họ tên") || lowerH.includes("ho ten") || lowerH.includes("tên nhân viên") || lowerH.includes("ten nhan vien") || lowerH.includes("tên nhân viên") || lowerH.includes("tên")) {
+            colTenNV = i;
+          }
+          if (lowerH.includes("bộ phận") || lowerH.includes("bo phan") || lowerH.includes("tổ") || lowerH.includes("to") || lowerH.includes("phòng") || lowerH.includes("phong") || lowerH.includes("bộ phận")) {
+            colTo = i;
+          }
         });
         
-        // Nhận diện cột theo tiêu đề
-        const colMaNV = colMap["Mã nhân viên"] !== undefined ? colMap["Mã nhân viên"] : colMap["Mã nhân viên "];
-        const colTenNV = colMap["Họ và tên"] !== undefined ? colMap["Họ và tên"] : colMap["Họ và tên "];
-        const colTo = colMap["Bộ phận"] !== undefined ? colMap["Bộ phận"] : (colMap["Bộ phận "] !== undefined ? colMap["Bộ phận "] : colMap["Tổ"]);
-        
-        if (colMaNV !== undefined && colTenNV !== undefined) {
+        if (colMaNV !== -1 && colTenNV !== -1) {
           for (let i = 1; i < dbValues.length; i++) {
             const r = dbValues[i];
             const maNV = r[colMaNV] ? r[colMaNV].toString().trim() : "";
             const tenNV = r[colTenNV] ? r[colTenNV].toString().trim() : "";
-            const to = colTo !== undefined && r[colTo] ? r[colTo].toString().trim() : "";
+            const to = colTo !== -1 && r[colTo] ? r[colTo].toString().trim() : "";
             
             if (maNV && tenNV) {
               employees.push({
