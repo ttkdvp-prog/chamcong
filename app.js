@@ -1538,10 +1538,11 @@ function setupAutocomplete(inputElement, field, onSelect) {
         listElement.classList.add('active');
     });
     
-    inputElement.addEventListener('blur', () => {
-        setTimeout(() => {
+    // Ẩn danh sách khi nhấp chuột ra ngoài
+    document.addEventListener('click', (e) => {
+        if (e.target !== inputElement && !listElement.contains(e.target)) {
             listElement.classList.remove('active');
-        }, 200);
+        }
     });
 }
 
