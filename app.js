@@ -1706,6 +1706,43 @@ function renderStatsTables(activeRecords) {
 
 // RENDER CHARTS
 function renderCharts() {
+    if (typeof Chart === 'undefined') {
+        console.warn("Chart.js chưa được tải. Bỏ qua dựng biểu đồ.");
+        const teamCanvas = document.getElementById('teamChart');
+        const empCanvas = document.getElementById('employeeChart');
+        if (teamCanvas) {
+            teamCanvas.style.display = 'none';
+            const teamParent = teamCanvas.parentNode;
+            let warningText = teamParent.querySelector('.chart-warning');
+            if (!warningText) {
+                warningText = document.createElement('div');
+                warningText.className = 'chart-warning';
+                warningText.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:0.9rem;text-align:center;padding:20px;';
+                warningText.innerHTML = '<i class="fa-solid fa-wifi" style="margin-right:8px;"></i> Kết nối internet để tải biểu đồ';
+                teamParent.appendChild(warningText);
+            }
+        }
+        if (empCanvas) {
+            empCanvas.style.display = 'none';
+            const empParent = empCanvas.parentNode;
+            let warningText = empParent.querySelector('.chart-warning');
+            if (!warningText) {
+                warningText = document.createElement('div');
+                warningText.className = 'chart-warning';
+                warningText.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:0.9rem;text-align:center;padding:20px;';
+                warningText.innerHTML = '<i class="fa-solid fa-wifi" style="margin-right:8px;"></i> Kết nối internet để tải biểu đồ';
+                empParent.appendChild(warningText);
+            }
+        }
+        return;
+    }
+    
+    // Nếu có Chart, ẩn cảnh báo và vẽ bình thường
+    const warningTexts = document.querySelectorAll('.chart-warning');
+    warningTexts.forEach(el => el.remove());
+    document.getElementById('teamChart').style.display = 'block';
+    document.getElementById('employeeChart').style.display = 'block';
+
     const activeRecords = state.records.filter(r => state.selectedMonth === 'all' || r["Tháng"] === state.selectedMonth);
     
     // Tính toán dữ liệu biểu đồ Tổ
