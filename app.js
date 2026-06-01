@@ -1190,12 +1190,11 @@ async function fetchDanhBaLive() {
 function loadLocalSettings() {
     const defaultUrl = 'https://script.google.com/macros/s/AKfycbwNXm3dPsURS3F-5dX4CW-R0mTaTCBKf9yHhj0stX3Qq5CvWncwUQi56KcKmSHSxKsDbw/exec';
     const savedUrl = localStorage.getItem('reward_api_url');
-    if (savedUrl) {
-        state.apiUrl = savedUrl;
-        document.getElementById('api-url-input').value = savedUrl;
-    } else {
-        state.apiUrl = defaultUrl;
-        document.getElementById('api-url-input').value = defaultUrl;
+    state.apiUrl = savedUrl || defaultUrl;
+    
+    const apiUrlInput = document.getElementById('api-url-input');
+    if (apiUrlInput) {
+        apiUrlInput.value = state.apiUrl;
     }
     
     // Tự động điền tháng hiện tại vào form nhập
@@ -1833,7 +1832,7 @@ function handleHashRouting() {
     const hash = window.location.hash.replace('#', '') || 'dashboard';
     
     // Kiểm tra tính hợp lệ của tab
-    const validTabs = ['dashboard', 'reward', 'deduct', 'history', 'config'];
+    const validTabs = ['dashboard', 'reward', 'deduct', 'history'];
     const tabName = validTabs.includes(hash) ? hash : 'dashboard';
     
     const views = document.querySelectorAll('.page-view');

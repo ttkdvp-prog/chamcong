@@ -41,10 +41,7 @@
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>Lịch sử & Thống kê</span>
                 </li>
-                <li class="menu-item" data-tab="config">
-                    <i class="fa-solid fa-gears"></i>
-                    <span>Cài đặt hệ thống</span>
-                </li>
+
             </ul>
             
             <div class="sidebar-footer">
@@ -447,45 +444,7 @@
                 </div>
             </section>
 
-            <!-- TAB 4: SYSTEM CONFIG VIEW -->
-            <section class="page-view" id="config-view">
-                <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
-                    <div class="card-title">
-                        <span><i class="fa-solid fa-gears" style="color: var(--color-primary); margin-right: 8px;"></i>Cấu Hình Kết Nối Hệ Thống</span>
-                    </div>
-                    
-                    <div class="config-group">
-                        <h3>Trạng thái kết nối Google Sheets</h3>
-                        <p>Bằng cách kết nối trực tiếp với Google Sheets của bạn thông qua Google Apps Script Web App API, mọi thay đổi, lưu trữ điểm mới hoặc truy vấn thống kê sẽ được đồng bộ hóa trực tiếp theo thời gian thực.</p>
-                        
-                        <div class="form-group" style="margin-bottom: 1.5rem;">
-                            <label for="api-url-input">Đường dẫn liên kết hệ thống (Web App URL) <span style="color: var(--color-danger)">*</span></label>
-                            <div class="input-container" style="margin-top: 8px;">
-                                <i class="fa-solid fa-link"></i>
-                                <input type="url" id="api-url-input" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
-                            </div>
-                        </div>
-                        
-                        <button class="btn btn-primary" id="save-api-btn">
-                            <i class="fa-solid fa-floppy-disk"></i> Lưu & Kết Nối Trực Tiếp
-                        </button>
-                    </div>
 
-                    <div class="glass-card" style="border-color: hsla(var(--hue-primary), 20%, 30%, 0.25); background: hsla(var(--hue-primary), 20%, 5%, 0.2);">
-                        <h4 style="margin-bottom: 12px; font-weight: 700; color: var(--color-primary);"><i class="fa-solid fa-circle-question"></i> Làm thế nào để lấy Đường dẫn liên kết?</h4>
-                        <ol style="margin-left: 20px; font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px; line-height: 1.5;">
-                            <li>Mở bảng tính Google Sheets của bạn.</li>
-                            <li>Chọn <strong>Tiện ích mở rộng (Extensions)</strong> &gt; <strong>Apps Script</strong>.</li>
-                            <li>Tạo mới hoặc dán tệp mã nguồn <code>google-apps-script.js</code> vào trình soạn thảo.</li>
-                            <li>Nhấp biểu tượng <strong>Lưu</strong>, sau đó nhấn <strong>Triển khai (Deploy)</strong> &gt; <strong>Triển khai mới (New deployment)</strong>.</li>
-                            <li>Chọn loại cấu hình là <strong>Ứng dụng web (Web app)</strong>.</li>
-                            <li>Thiết lập Quyền thực thi dưới danh nghĩa: <strong>Tôi (Me)</strong> và Ai có quyền truy cập: <strong>Mọi người (Anyone)</strong>.</li>
-                            <li>Nhấn <strong>Triển khai (Deploy)</strong>, cấp các quyền truy cập tài khoản Google nếu được nhắc.</li>
-                            <li>Sao chép <strong>URL ứng dụng web</strong> nhận được và dán vào hộp nhập liệu phía trên.</li>
-                        </ol>
-                    </div>
-                </div>
-            </section>
 
         </main>
     </div>
