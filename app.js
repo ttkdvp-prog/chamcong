@@ -2185,14 +2185,14 @@ function renderHistoryTable(records) {
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${r["STT"]}</td>
-            <td><span class="badge primary">${formatMonthDisplay(r["Tháng"])}</span></td>
-            <td><code>${r["Mã nhân viên"]}</code></td>
-            <td><strong>${displayName}</strong></td>
-            <td>${r["Tổ"] || '<span style="color: var(--text-muted); font-style: italic;">Chưa phân tổ</span>'}</td>
-            <td style="font-weight: 700;">${formatNumber(r["Điểm khuyến khích"])}</td>
-            <td style="color: var(--color-accent); font-weight: 700;">${formatCurrency(r["Tiền thưởng"])}</td>
-            <td>
+            <td data-label="STT">${r["STT"]}</td>
+            <td data-label="Kỳ Thưởng"><span class="badge primary">${formatMonthDisplay(r["Tháng"])}</span></td>
+            <td data-label="Mã NV"><code>${r["Mã nhân viên"]}</code></td>
+            <td data-label="Họ Và Tên"><strong>${displayName}</strong></td>
+            <td data-label="Tổ">${r["Tổ"] || '<span style="color: var(--text-muted); font-style: italic;">Chưa phân tổ</span>'}</td>
+            <td data-label="Điểm" style="font-weight: 700;">${formatNumber(r["Điểm khuyến khích"])}</td>
+            <td data-label="Tiền Thưởng" style="color: var(--color-accent); font-weight: 700;">${formatCurrency(r["Tiền thưởng"])}</td>
+            <td data-label="Lý do">
                 <div class="expandable-reason-container">
                     <span class="reason-text" title="Nhấp nút bên cạnh để mở rộng/thu gọn lý do">${truncateString(r["Lý do"], 60)}</span>
                     ${r["Lý do"] && r["Lý do"].length > 60 ? `
@@ -2202,7 +2202,7 @@ function renderHistoryTable(records) {
                     ` : ''}
                 </div>
             </td>
-            <td>
+            <td data-label="Thao tác">
                 <div class="action-buttons-container">
                     <button class="btn-action edit" title="Sửa bản ghi này">
                         <i class="fa-solid fa-pen-to-square"></i>

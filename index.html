@@ -238,7 +238,7 @@
                                 <div class="input-container">
                                     <i class="fa-solid fa-calendar-days"></i>
                                     <input type="text" id="reward-month" class="form-control"
-                                        placeholder="Ví dụ: 52026 (tháng 5/2026)" required>
+                                        placeholder="Ví dụ: 52026 (tháng 5/2026)" inputmode="numeric" pattern="[0-9]*" required>
                                 </div>
                             </div>
 
@@ -350,7 +350,7 @@
                                 <div class="input-container">
                                     <i class="fa-solid fa-calendar-days"></i>
                                     <input type="text" id="deduct-month" class="form-control"
-                                        placeholder="Ví dụ: 52026 (tháng 5/2026)" required>
+                                        placeholder="Ví dụ: 52026 (tháng 5/2026)" inputmode="numeric" pattern="[0-9]*" required>
                                 </div>
                             </div>
 
@@ -517,7 +517,7 @@
                 style="padding: 0; background: none; border: none; box-shadow: none; backdrop-filter: none;">
                 <input type="hidden" id="edit-stt">
 
-                <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+                <div class="form-row form-row-2col">
                     <div class="form-group">
                         <label>Họ Và Tên</label>
                         <div class="input-container">
@@ -536,13 +536,13 @@
                     </div>
                 </div>
 
-                <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+                <div class="form-row form-row-2col">
                     <div class="form-group">
                         <label for="edit-month">Tháng (Định dạng: TTrrrr) <span
                                 style="color: var(--color-danger)">*</span></label>
                         <div class="input-container">
                             <i class="fa-solid fa-calendar-days"></i>
-                            <input type="text" id="edit-month" class="form-control" required placeholder="Ví dụ: 52026">
+                            <input type="text" id="edit-month" class="form-control" required placeholder="Ví dụ: 52026" inputmode="numeric" pattern="[0-9]*">
                         </div>
                     </div>
                     <div class="form-group">

@@ -986,3 +986,138 @@ select.form-control option {
 .modal-close:hover {
     color: var(--color-danger);
 }
+
+/* RESPONSIVE STYLES FOR MOBILE FIRST/PREMIUM UX */
+.form-row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 580px) {
+    .form-row-2col {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    /* CARD LIST LAYOUT FOR DATA TABLES ON MOBILE */
+    .data-table thead {
+        display: none; /* Ẩn tiêu đề cột thô sơ */
+    }
+    
+    .data-table, .data-table tbody, .data-table tr, .data-table td {
+        display: block;
+        width: 100%;
+    }
+    
+    .data-table tr {
+        margin-bottom: 16px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        box-shadow: var(--glass-shadow);
+        backdrop-filter: blur(var(--glass-blur));
+        transition: transform var(--transition-fast);
+    }
+    
+    .data-table tr:hover {
+        transform: translateY(-2px);
+        background: var(--bg-card-hover);
+        border-color: var(--border-color-hover);
+    }
+    
+    .data-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px dashed hsla(var(--hue-primary), 20%, 25%, 0.15);
+        text-align: right;
+        font-size: 0.85rem;
+        min-height: 40px;
+    }
+    
+    .data-table td:last-child {
+        border-bottom: none;
+        padding-top: 12px;
+    }
+    
+    /* Gán nhãn tiêu đề trước từng ô dữ liệu */
+    .data-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--text-muted);
+        text-align: left;
+        margin-right: 15px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .expandable-reason-container {
+        justify-content: flex-end;
+        width: 65%;
+    }
+    
+    .reason-text {
+        text-align: right;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    .action-buttons-container {
+        justify-content: flex-end;
+        width: 100%;
+        gap: 12px;
+    }
+    
+    .btn-action {
+        width: 42px;
+        height: 42px;
+        font-size: 1.05rem;
+    }
+
+    /* Modal Optimization on Mobile */
+    .modal-content {
+        padding: 1.25rem;
+        width: 95%;
+        border-radius: var(--radius-md);
+    }
+    
+    .modal-header h2 {
+        font-size: 1.15rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Compact 2-column KPI grid on phone viewport */
+    .metrics-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .metrics-grid .metric-card {
+        padding: 12px;
+        border-radius: var(--radius-md);
+    }
+    
+    /* Make the 3rd card (Thực chi tiền thưởng) full width because it contains the budget and currency which is wider */
+    .metrics-grid .metric-card:nth-child(3) {
+        grid-column: span 2;
+    }
+    
+    .metric-value {
+        font-size: 1.25rem;
+        margin-top: 4px;
+    }
+    
+    .metric-header {
+        font-size: 0.65rem;
+    }
+
+    .metric-subtitle {
+        font-size: 0.6rem;
+    }
+}
+
