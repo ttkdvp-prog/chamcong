@@ -1911,7 +1911,19 @@ function updateUI() {
         .reduce((sum, r) => sum + r["Điểm khuyến khích"], 0);
 
     const totalMoney = activeRecords.reduce((sum, r) => sum + (r["Tiền thưởng"] || 0), 0);
-    const uniqueEmployeesCount = new Set(activeRecords.map(r => r["Mã nhân viên"])).size;
+    
+    // Đếm nhân sự được thưởng và bị phạt riêng biệt
+    const rewardedEmployeesCount = new Set(
+        activeRecords
+            .filter(r => (r["Điểm khuyến khích"] || 0) > 0)
+            .map(r => r["Mã nhân viên"])
+    ).size;
+    
+    const penalizedEmployeesCount = new Set(
+        activeRecords
+            .filter(r => (r["Điểm khuyến khích"] || 0) < 0)
+            .map(r => r["Mã nhân viên"])
+    ).size;
 
     // Cập nhật các KPI Card
     const posPointsEl = document.getElementById('kpi-positive-points');
@@ -1920,9 +1932,11 @@ function updateUI() {
     if (negPointsEl) negPointsEl.textContent = formatNumber(negativePoints);
     
     const totalMoneyEl = document.getElementById('kpi-total-money');
-    const employeesEl = document.getElementById('kpi-employees');
+    const rewardedEmployeesEl = document.getElementById('kpi-rewarded-employees');
+    const penalizedEmployeesEl = document.getElementById('kpi-penalized-employees');
     if (totalMoneyEl) totalMoneyEl.textContent = formatCurrency(totalMoney);
-    if (employeesEl) employeesEl.textContent = uniqueEmployeesCount;
+    if (rewardedEmployeesEl) rewardedEmployeesEl.textContent = rewardedEmployeesCount;
+    if (penalizedEmployeesEl) penalizedEmployeesEl.textContent = penalizedEmployeesCount;
 
     // 3. Render Bảng Lịch sử đầy đủ
     renderHistoryTable(filteredRecords);

@@ -112,14 +112,24 @@
                         <div class="metric-subtitle">Ngân sách thực chi (5K/Điểm)</div>
                     </div>
                     
-                    <!-- Nhân sự tham gia -->
+                    <!-- Nhân sự được khen thưởng -->
                     <div class="metric-card">
                         <div class="metric-header">
-                            <span>NHÂN SỰ ĐƯỢC THƯỞNG/PHẠT</span>
-                            <i class="fa-solid fa-users metric-icon" style="color: var(--color-accent);"></i>
+                            <span>NHÂN SỰ ĐƯỢC KHEN THƯỞNG</span>
+                            <i class="fa-solid fa-user-check metric-icon" style="color: var(--color-primary);"></i>
                         </div>
-                        <div class="metric-value" id="kpi-employees">0</div>
-                        <div class="metric-subtitle font-weight-500">Mã nhân sự nhận điểm thưởng/phạt</div>
+                        <div class="metric-value" id="kpi-rewarded-employees" style="color: var(--color-primary);">0</div>
+                        <div class="metric-subtitle">Nhận điểm cộng tích lũy</div>
+                    </div>
+                    
+                    <!-- Nhân sự bị giảm trừ -->
+                    <div class="metric-card danger">
+                        <div class="metric-header">
+                            <span>NHÂN SỰ BỊ GIẢM TRỪ</span>
+                            <i class="fa-solid fa-user-xmark metric-icon" style="color: var(--color-danger);"></i>
+                        </div>
+                        <div class="metric-value" id="kpi-penalized-employees" style="color: var(--color-danger);">0</div>
+                        <div class="metric-subtitle">Bị trừ điểm tích lũy</div>
                     </div>
                 </div>
 
