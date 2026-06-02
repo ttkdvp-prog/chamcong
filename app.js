@@ -1674,9 +1674,8 @@ function setupEventListeners() {
                 try {
                     const res = await fetch(state.apiUrl, {
                         method: 'POST',
-                        mode: 'no-cors', // Sử dụng no-cors tránh lỗi tiền kiểm định pre-flight CORS
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'text/plain;charset=utf-8'
                         },
                         body: JSON.stringify(newRecord)
                     });
@@ -1750,9 +1749,8 @@ function setupEventListeners() {
                 try {
                     const res = await fetch(state.apiUrl, {
                         method: 'POST',
-                        mode: 'no-cors',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'text/plain;charset=utf-8'
                         },
                         body: JSON.stringify(newRecord)
                     });
@@ -1909,9 +1907,8 @@ async function handleEditSubmit() {
             
             await fetch(state.apiUrl, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'text/plain;charset=utf-8'
                 },
                 body: JSON.stringify(payload)
             });
@@ -1983,9 +1980,8 @@ async function handleDeleteRecord(stt) {
             
             await fetch(state.apiUrl, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'text/plain;charset=utf-8'
                 },
                 body: JSON.stringify(payload)
             });
