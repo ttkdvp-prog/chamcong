@@ -73,6 +73,36 @@ function doGet(e) {
     }
 
     const headers = values[0].map(h => h.toString().trim());
+    const colStt = headers.indexOf("STT");
+    if (colStt !== -1) {
+      let maxStt = 0;
+      // 1. Tìm STT lớn nhất hiện tại
+      for (let i = 1; i < values.length; i++) {
+        const sttVal = parseInt(values[i][colStt]);
+        if (!isNaN(sttVal) && sttVal > maxStt) {
+          maxStt = sttVal;
+        }
+      }
+      // 2. Tự động sửa lỗi & gán số STT cho các dòng chưa có dữ liệu STT chuẩn
+      let hasChange = false;
+      for (let i = 1; i < values.length; i++) {
+        const row = values[i];
+        // Bỏ qua dòng trống hoàn toàn (cột kế tiếp không có giá trị)
+        if (!row[colStt + 1] && !row[colStt + 2] && !row[colStt + 3]) continue;
+        
+        const sttVal = parseInt(row[colStt]);
+        if (isNaN(sttVal) || row[colStt] === "") {
+          maxStt++;
+          sheet.getRange(i + 1, colStt + 1).setValue(maxStt);
+          values[i][colStt] = maxStt;
+          hasChange = true;
+        }
+      }
+      if (hasChange) {
+        SpreadsheetApp.flush(); // Áp dụng thay đổi xuống file vật lý
+      }
+    }
+
     const data = [];
 
     for (let i = 1; i < values.length; i++) {
@@ -107,6 +137,38 @@ function doGet(e) {
 function doPost(e) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    
+    // Tự động kiểm tra và gán số STT tự động cho các dòng bị thiếu trước khi thực hiện bất kỳ hành động nào
+    const tempValues = sheet.getDataRange().getValues();
+    if (tempValues.length > 1) {
+      const tempHeaders = tempValues[0].map(h => h.toString().trim());
+      const tempColStt = tempHeaders.indexOf("STT");
+      if (tempColStt !== -1) {
+        let maxStt = 0;
+        for (let i = 1; i < tempValues.length; i++) {
+          const sttVal = parseInt(tempValues[i][tempColStt]);
+          if (!isNaN(sttVal) && sttVal > maxStt) {
+            maxStt = sttVal;
+          }
+        }
+        let hasChange = false;
+        for (let i = 1; i < tempValues.length; i++) {
+          const row = tempValues[i];
+          if (!row[tempColStt + 1] && !row[tempColStt + 2] && !row[tempColStt + 3]) continue;
+          
+          const sttVal = parseInt(row[tempColStt]);
+          if (isNaN(sttVal) || row[tempColStt] === "") {
+            maxStt++;
+            sheet.getRange(i + 1, tempColStt + 1).setValue(maxStt);
+            hasChange = true;
+          }
+        }
+        if (hasChange) {
+          SpreadsheetApp.flush();
+        }
+      }
+    }
+
     let payload;
 
     if (e.postData && e.postData.contents) {

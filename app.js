@@ -1680,19 +1680,41 @@ function setupEventListeners() {
                         body: JSON.stringify(newRecord)
                     });
                     
-                    showToast("Điểm thưởng đang được gửi tới Google Sheets!", "success");
-                    rewardForm.reset();
-                    moneyPreview.textContent = "0 đ";
+                    let success = false;
+                    let errMsg = "";
+                    try {
+                        const result = await res.json();
+                        if (result && result.status === "success") {
+                            success = true;
+                        } else {
+                            errMsg = result ? result.message : "Lỗi không xác định";
+                        }
+                    } catch (e) {
+                        errMsg = "Không nhận được phản hồi chuẩn từ Google Sheets.";
+                    }
                     
-                    // Đợi 2 giây rồi tải lại dữ liệu từ Google Sheets
-                    setTimeout(async () => {
-                        await refreshData();
+                    if (success) {
+                        showToast("Điểm thưởng đã được gửi và lưu thành công trên Google Sheets!", "success");
+                        rewardForm.reset();
+                        moneyPreview.textContent = "0 đ";
+                        
+                        setTimeout(async () => {
+                            await refreshData();
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = "Lưu Điểm Khuyến khích";
+                            switchTab('history');
+                        }, 2000);
+                    } else {
+                        showToast("Lỗi lưu Google Sheets: " + errMsg + ". Đang chuyển lưu offline.", "error");
+                        saveOffline(newRecord);
                         submitBtn.disabled = false;
                         submitBtn.textContent = "Lưu Điểm Khuyến khích";
+                        rewardForm.reset();
+                        moneyPreview.textContent = "0 đ";
                         switchTab('history');
-                    }, 2000);
+                    }
                 } catch (error) {
-                    showToast("Không thể gửi dữ liệu tới Google Sheets. Đang chuyển lưu offline.", "error");
+                    showToast("Lỗi kết nối tới Google Sheets. Đang chuyển lưu offline.", "error");
                     console.error(error);
                     saveOffline(newRecord);
                     submitBtn.disabled = false;
@@ -1755,18 +1777,41 @@ function setupEventListeners() {
                         body: JSON.stringify(newRecord)
                     });
                     
-                    showToast("Điểm trừ đang được gửi tới Google Sheets!", "success");
-                    deductForm.reset();
-                    deductMoneyPreview.textContent = "0 đ";
+                    let success = false;
+                    let errMsg = "";
+                    try {
+                        const result = await res.json();
+                        if (result && result.status === "success") {
+                            success = true;
+                        } else {
+                            errMsg = result ? result.message : "Lỗi không xác định";
+                        }
+                    } catch (e) {
+                        errMsg = "Không nhận được phản hồi chuẩn từ Google Sheets.";
+                    }
                     
-                    setTimeout(async () => {
-                        await refreshData();
+                    if (success) {
+                        showToast("Điểm trừ đã được gửi và lưu thành công trên Google Sheets!", "success");
+                        deductForm.reset();
+                        deductMoneyPreview.textContent = "0 đ";
+                        
+                        setTimeout(async () => {
+                            await refreshData();
+                            submitDeductBtn.disabled = false;
+                            submitDeductBtn.textContent = "Lưu Điểm Trừ";
+                            switchTab('history');
+                        }, 2000);
+                    } else {
+                        showToast("Lỗi lưu Google Sheets: " + errMsg + ". Đang chuyển lưu offline.", "error");
+                        saveOffline(newRecord);
                         submitDeductBtn.disabled = false;
                         submitDeductBtn.textContent = "Lưu Điểm Trừ";
+                        deductForm.reset();
+                        deductMoneyPreview.textContent = "0 đ";
                         switchTab('history');
-                    }, 2000);
+                    }
                 } catch (error) {
-                    showToast("Không thể gửi dữ liệu tới Google Sheets. Đang chuyển lưu offline.", "error");
+                    showToast("Lỗi kết nối tới Google Sheets. Đang chuyển lưu offline.", "error");
                     console.error(error);
                     saveOffline(newRecord);
                     submitDeductBtn.disabled = false;
@@ -1905,7 +1950,7 @@ async function handleEditSubmit() {
             
             showToast("Đang đồng bộ thay đổi chỉnh sửa lên Google Sheets...", "info");
             
-            await fetch(state.apiUrl, {
+            const res = await fetch(state.apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'text/plain;charset=utf-8'
@@ -1913,12 +1958,29 @@ async function handleEditSubmit() {
                 body: JSON.stringify(payload)
             });
             
-            showToast("Thay đổi đã được cập nhật! (Lưu ý: Đảm bảo bạn đã Triển khai phiên bản mới của Apps Script để lưu vĩnh viễn)", "success");
+            let success = false;
+            let errMsg = "";
+            try {
+                const result = await res.json();
+                if (result && result.status === "success") {
+                    success = true;
+                } else {
+                    errMsg = result ? result.message : "Lỗi không xác định";
+                }
+            } catch (e) {
+                errMsg = "Không nhận được phản hồi chuẩn từ Google Sheets.";
+            }
             
-            // Tải lại dữ liệu kiểm chứng sau 2.5 giây
-            setTimeout(async () => {
-                await refreshData();
-            }, 2500);
+            if (success) {
+                showToast("Thay đổi đã được cập nhật lên Google Sheets thành công!", "success");
+                
+                // Tải lại dữ liệu kiểm chứng sau 2.5 giây
+                setTimeout(async () => {
+                    await refreshData();
+                }, 2500);
+            } else {
+                showToast("Không thể lưu lên Google Sheets: " + errMsg, "error");
+            }
             
         } catch (error) {
             showToast("Lỗi đồng bộ lên Google Sheets. Dữ liệu đang được lưu tạm Offline.", "error");
@@ -1978,7 +2040,7 @@ async function handleDeleteRecord(stt) {
                 stt
             };
             
-            await fetch(state.apiUrl, {
+            const res = await fetch(state.apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'text/plain;charset=utf-8'
@@ -1986,12 +2048,29 @@ async function handleDeleteRecord(stt) {
                 body: JSON.stringify(payload)
             });
             
-            showToast("Đã xóa thành công! (Lưu ý: Đảm bảo bạn đã Triển khai phiên bản mới của Apps Script để lưu vĩnh viễn)", "success");
+            let success = false;
+            let errMsg = "";
+            try {
+                const result = await res.json();
+                if (result && result.status === "success") {
+                    success = true;
+                } else {
+                    errMsg = result ? result.message : "Lỗi không xác định";
+                }
+            } catch (e) {
+                errMsg = "Không nhận được phản hồi chuẩn từ Google Sheets.";
+            }
             
-            // Tải lại dữ liệu kiểm chứng sau 2.5 giây
-            setTimeout(async () => {
-                await refreshData();
-            }, 2500);
+            if (success) {
+                showToast("Đã xóa bản ghi thành công trên Google Sheets!", "success");
+                
+                // Tải lại dữ liệu kiểm chứng sau 2.5 giây
+                setTimeout(async () => {
+                    await refreshData();
+                }, 2500);
+            } else {
+                showToast("Không thể xóa trên Google Sheets: " + errMsg, "error");
+            }
             
         } catch (error) {
             showToast("Lỗi gửi yêu cầu xóa lên Google Sheets. Dữ liệu đang xóa tạm Offline.", "error");
