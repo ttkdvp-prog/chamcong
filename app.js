@@ -1979,7 +1979,11 @@ async function handleEditSubmit() {
                     await refreshData();
                 }, 2500);
             } else {
-                showToast("Không thể lưu lên Google Sheets: " + errMsg, "error");
+                if (errMsg.includes("Thiếu thông tin Mã nhân viên hoặc Tên nhân viên")) {
+                    showToast("Lỗi: Máy chủ Google Sheets đang chạy phiên bản Apps Script cũ. Vui lòng thực hiện Triển khai phiên bản mới (New version) trên Sheets.", "error");
+                } else {
+                    showToast("Không thể lưu lên Google Sheets: " + errMsg, "error");
+                }
             }
             
         } catch (error) {
@@ -2069,7 +2073,11 @@ async function handleDeleteRecord(stt) {
                     await refreshData();
                 }, 2500);
             } else {
-                showToast("Không thể xóa trên Google Sheets: " + errMsg, "error");
+                if (errMsg.includes("Thiếu thông tin Mã nhân viên hoặc Tên nhân viên")) {
+                    showToast("Lỗi: Máy chủ Google Sheets đang chạy phiên bản Apps Script cũ. Vui lòng thực hiện Triển khai phiên bản mới (New version) trên Sheets.", "error");
+                } else {
+                    showToast("Không thể xóa trên Google Sheets: " + errMsg, "error");
+                }
             }
             
         } catch (error) {
