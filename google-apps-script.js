@@ -137,6 +137,7 @@ function doGet(e) {
 function doPost(e) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    console.log("doPost received request. Contents: " + (e.postData ? e.postData.contents : "No contents"));
     
     // Tự động kiểm tra và gán số STT tự động cho các dòng bị thiếu trước khi thực hiện bất kỳ hành động nào
     const tempValues = sheet.getDataRange().getValues();
@@ -178,6 +179,7 @@ function doPost(e) {
     }
 
     const action = payload.action || "add";
+    console.log("Parsed action: " + action + ", payload: " + JSON.stringify(payload));
 
     // THAO TÁC XÓA BẢN GHI
     if (action === "delete") {
