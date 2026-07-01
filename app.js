@@ -1121,6 +1121,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // INITIALIZE APP
 async function initApp() {
+    // Kiểm tra cờ admin trong URL (?admin=true hoặc #admin)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('admin') === 'true' || window.location.hash.includes('admin')) {
+        localStorage.setItem('admin_mode', 'true');
+    }
+    
+    // Gán trạng thái admin từ LocalStorage
+    state.isAdmin = localStorage.getItem('admin_mode') === 'true';
+    
+    // Điều khiển ẩn/hiện nút "Khóa Chốt Tháng" dựa trên cờ Admin
+    const settingsBtn = document.getElementById('btn-open-settings');
+    if (settingsBtn) {
+        settingsBtn.style.display = state.isAdmin ? 'flex' : 'none';
+    }
+
     loadLocalSettings();
     
     // 1. Tải dữ liệu đệm từ LocalStorage hoặc Mock trước để giao diện hiển thị ngay lập tức (Dưới 0.1s)
@@ -1237,8 +1252,8 @@ async function refreshData(isManual = false) {
             if (statusText) statusText.textContent = "Đang kết nối...";
             setStatusClass("");
             
-            // Đọc mã bảo mật từ localStorage gửi kèm lên server
-            const passcode = localStorage.getItem('admin_passcode') || '';
+            // Sử dụng mã bảo mật hệ thống chạy ngầm
+            const passcode = 'vnpt_admin';
             let requestUrl = state.apiUrl;
             try {
                 const urlObj = new URL(state.apiUrl);
@@ -1749,7 +1764,7 @@ function setupEventListeners() {
                 diem,
                 lyDo,
                 timestamp,
-                passcode: localStorage.getItem('admin_passcode') || ''
+                passcode: 'vnpt_admin'
             };
             
             if (state.isLive && state.apiUrl) {
@@ -1854,7 +1869,7 @@ function setupEventListeners() {
                 diem,
                 lyDo,
                 timestamp,
-                passcode: localStorage.getItem('admin_passcode') || ''
+                passcode: 'vnpt_admin'
             };
             
             if (state.isLive && state.apiUrl) {
@@ -2009,7 +2024,6 @@ function setupEventListeners() {
     const showSettingsModal = () => {
         if (settingsModal) {
             document.getElementById('settings-api-url').value = state.apiUrl || '';
-            document.getElementById('settings-admin-passcode').value = localStorage.getItem('admin_passcode') || '';
             document.getElementById('settings-locked-months').value = state.lockedMonths ? state.lockedMonths.join(", ") : '';
             settingsModal.classList.add('active');
         }
@@ -2034,15 +2048,11 @@ function setupEventListeners() {
         settingsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const apiUrlVal = document.getElementById('settings-api-url').value.trim();
-            const passcodeVal = document.getElementById('settings-admin-passcode').value.trim();
             const lockedMonthsVal = document.getElementById('settings-locked-months').value.trim();
             
             // Save API URL locally
             localStorage.setItem('reward_api_url', apiUrlVal);
             state.apiUrl = apiUrlVal;
-            
-            // Save passcode locally
-            localStorage.setItem('admin_passcode', passcodeVal);
             
             // Submit to the server if live
             if (state.isLive && state.apiUrl) {
@@ -2058,7 +2068,7 @@ function setupEventListeners() {
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify({
                             action: 'save_config',
-                            passcode: passcodeVal,
+                            passcode: 'vnpt_admin',
                             lockedMonths: lockedMonthsVal
                         })
                     });
@@ -2187,7 +2197,7 @@ async function handleEditSubmit() {
                 diem,
                 lyDo,
                 timestamp,
-                passcode: localStorage.getItem('admin_passcode') || ''
+                passcode: 'vnpt_admin'
             };
             
             showToast("Đang đồng bộ thay đổi chỉnh sửa lên Google Sheets...", "info");
@@ -2291,7 +2301,7 @@ async function handleDeleteRecord(stt) {
             const payload = {
                 action: "delete",
                 stt,
-                passcode: localStorage.getItem('admin_passcode') || ''
+                passcode: 'vnpt_admin'
             };
             
             const res = await fetch(state.apiUrl, {

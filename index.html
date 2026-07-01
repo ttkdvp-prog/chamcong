@@ -59,9 +59,9 @@
                     <i class="fas fa-sun"></i>
                     <span>Giao diện Sáng</span>
                 </button>
-                <button class="theme-toggle-btn" id="btn-open-settings" style="width: 100%;">
-                    <i class="fa-solid fa-gears"></i>
-                    <span>Cấu hình Bảo mật</span>
+                <button class="theme-toggle-btn" id="btn-open-settings" style="width: 100%; display: none;">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>Khóa Chốt Tháng</span>
                 </button>
             </div>
         </aside>
@@ -739,7 +739,7 @@
     <div id="settings-modal" class="modal-overlay">
         <div class="modal-content glass-card" style="max-width: 600px; width: 90%;">
             <div class="modal-header">
-                <h2><i class="fa-solid fa-gears" style="color: var(--color-primary); margin-right: 8px;"></i>Cấu Hình Hệ Thống & Bảo Mật</h2>
+                <h2><i class="fa-solid fa-lock" style="color: var(--color-primary); margin-right: 8px;"></i>Thiết Lập Khóa Chốt Tháng</h2>
                 <button type="button" class="modal-close" id="close-settings-modal-btn"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="settings-form" class="reward-form" style="padding: 0; background: none; border: none; box-shadow: none; backdrop-filter: none;">
@@ -753,29 +753,15 @@
                     </div>
                 </div>
 
-                <div class="form-row form-row-2col">
-                    <!-- Admin Passcode -->
-                    <div class="form-group">
-                        <label for="settings-admin-passcode">Mã Bảo Mật Admin (Passcode)</label>
-                        <div class="input-container">
-                            <i class="fa-solid fa-key"></i>
-                            <input type="password" id="settings-admin-passcode" class="form-control" placeholder="Nhập mã bảo mật...">
-                        </div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
-                            Dùng để xác thực quyền Admin trên trình duyệt này.
-                        </div>
+                <!-- Locked Months -->
+                <div class="form-group">
+                    <label for="settings-locked-months">Danh Sách Tháng Bị Khóa (Chốt)</label>
+                    <div class="input-container">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="text" id="settings-locked-months" class="form-control" placeholder="Ví dụ: 52026, 42026">
                     </div>
-                    
-                    <!-- Locked Months -->
-                    <div class="form-group">
-                        <label for="settings-locked-months">Danh Sách Tháng Bị Khóa (Chốt)</label>
-                        <div class="input-container">
-                            <i class="fa-solid fa-lock"></i>
-                            <input type="text" id="settings-locked-months" class="form-control" placeholder="Ví dụ: 52026, 42026">
-                        </div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
-                            Các tháng bị khóa, ngăn chặn chỉnh sửa/thêm mới (Phân tách bằng dấu phẩy).
-                        </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+                        Các tháng bị khóa, ngăn chặn chỉnh sửa/thêm mới (Phân tách bằng dấu phẩy. Ví dụ: 52026, 42026).
                     </div>
                 </div>
 

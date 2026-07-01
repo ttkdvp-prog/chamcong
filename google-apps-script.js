@@ -26,7 +26,7 @@ function getConfig(ss) {
     configSheet = ss.insertSheet("config");
     configSheet.appendRow(["Key", "Value"]);
     configSheet.appendRow(["locked_months", ""]);
-    configSheet.appendRow(["admin_passcode", "123456"]); // Mật khẩu mặc định là 123456
+    configSheet.appendRow(["admin_passcode", "vnpt_admin"]); // Mật khẩu mặc định là vnpt_admin
     SpreadsheetApp.flush();
   }
   
@@ -48,7 +48,7 @@ function saveConfig(ss, lockedMonths, passcode) {
     configSheet = ss.insertSheet("config");
     configSheet.appendRow(["Key", "Value"]);
     configSheet.appendRow(["locked_months", ""]);
-    configSheet.appendRow(["admin_passcode", "123456"]);
+    configSheet.appendRow(["admin_passcode", "vnpt_admin"]);
     SpreadsheetApp.flush();
   }
   
