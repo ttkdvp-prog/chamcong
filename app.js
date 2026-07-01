@@ -3,6 +3,7 @@ let state = {
     records: [],
     employees: [], // { maNV, tenNV, to }
     selectedMonth: 'all',
+    dashboardSelectedMonth: 'all',
     filters: {
         searchName: '',
         searchId: '',
@@ -1429,6 +1430,7 @@ function extractEmployeeDatabase() {
 function populateMonthSelectors() {
     const filterMonth = document.getElementById('filter-month');
     const teamFilterMonth = document.getElementById('team-stats-filter-month');
+    const dashboardFilterMonth = document.getElementById('dashboard-filter-month');
     const months = [...new Set(state.records.map(r => r["Tháng"]))].filter(Boolean);
     
     // Sắp xếp tháng từ mới nhất đến cũ nhất
@@ -1466,6 +1468,31 @@ function populateMonthSelectors() {
             teamFilterMonth.value = currentTeamVal;
         } else {
             teamFilterMonth.value = 'all';
+        }
+    }
+
+    // 3. Lọc Tổng quan
+    if (dashboardFilterMonth) {
+        const currentDashVal = dashboardFilterMonth.value || 'all';
+        dashboardFilterMonth.innerHTML = '<option value="all">Tất cả các tháng</option>';
+        months.forEach(m => {
+            const option = document.createElement('option');
+            option.value = m;
+            option.textContent = formatMonthDisplay(m);
+            dashboardFilterMonth.appendChild(option);
+        });
+        if (months.includes(currentDashVal)) {
+            dashboardFilterMonth.value = currentDashVal;
+            state.dashboardSelectedMonth = currentDashVal;
+        } else {
+            // Mặc định chọn tháng mới nhất nếu có, nếu không thì chọn 'all'
+            if (months.length > 0) {
+                dashboardFilterMonth.value = months[0];
+                state.dashboardSelectedMonth = months[0];
+            } else {
+                dashboardFilterMonth.value = 'all';
+                state.dashboardSelectedMonth = 'all';
+            }
         }
     }
 }
@@ -1921,6 +1948,16 @@ function setupEventListeners() {
             renderStatsTables(getFilteredRecordsForTeamStats());
         });
     }
+
+    // Filter for Overview (Dashboard) view
+    const dashboardFilterMonth = document.getElementById('dashboard-filter-month');
+    if (dashboardFilterMonth) {
+        dashboardFilterMonth.addEventListener('change', (e) => {
+            state.dashboardSelectedMonth = e.target.value;
+            updateUI();
+            renderCharts();
+        });
+    }
 }
 
 // OPEN EDIT MODAL
@@ -2260,30 +2297,31 @@ function updateUI() {
         return 0;
     });
 
-    // 2. Tính toán tổng số lượng cho KPIs (dựa trên tháng được chọn)
+    // 2. Tính toán tổng số lượng cho KPIs của trang Tổng quan (dựa trên tháng được chọn trên tab Tổng quan)
+    const overviewRecords = state.records.filter(r => state.dashboardSelectedMonth === 'all' || r["Tháng"] === state.dashboardSelectedMonth);
     const activeRecords = state.records.filter(r => state.selectedMonth === 'all' || r["Tháng"] === state.selectedMonth);
     
     // Tính tổng điểm cộng (các bản ghi điểm > 0)
-    const positivePoints = activeRecords
+    const positivePoints = overviewRecords
         .filter(r => (r["Điểm khuyến khích"] || 0) > 0)
         .reduce((sum, r) => sum + r["Điểm khuyến khích"], 0);
         
     // Tính tổng điểm trừ (các bản ghi điểm < 0)
-    const negativePoints = activeRecords
+    const negativePoints = overviewRecords
         .filter(r => (r["Điểm khuyến khích"] || 0) < 0)
         .reduce((sum, r) => sum + r["Điểm khuyến khích"], 0);
 
-    const totalMoney = activeRecords.reduce((sum, r) => sum + (r["Tiền thưởng"] || 0), 0);
+    const totalMoney = overviewRecords.reduce((sum, r) => sum + (r["Tiền thưởng"] || 0), 0);
     
-    // Đếm nhân sự được thưởng và bị phạt riêng biệt
+    // Đếm nhân sự được thưởng và bị phạt riêng biệt của trang Tổng quan
     const rewardedEmployeesCount = new Set(
-        activeRecords
+        overviewRecords
             .filter(r => (r["Điểm khuyến khích"] || 0) > 0)
             .map(r => r["Mã nhân viên"])
     ).size;
     
     const penalizedEmployeesCount = new Set(
-        activeRecords
+        overviewRecords
             .filter(r => (r["Điểm khuyến khích"] || 0) < 0)
             .map(r => r["Mã nhân viên"])
     ).size;
@@ -2723,7 +2761,7 @@ function renderEmployeeStatsTable(activeRecords) {
 
 // RENDER CHARTS
 function renderCharts() {
-    const activeRecords = state.records.filter(r => state.selectedMonth === 'all' || r["Tháng"] === state.selectedMonth);
+    const activeRecords = state.records.filter(r => state.dashboardSelectedMonth === 'all' || r["Tháng"] === state.dashboardSelectedMonth);
     
     // Tính toán dữ liệu biểu đồ Tổ
     const teamData = {};

@@ -93,6 +93,21 @@
 
             <!-- TAB 1: DASHBOARD VIEW -->
             <section class="page-view active" id="dashboard-view">
+                <!-- Overview Header & Month Filter -->
+                <div class="glass-card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div class="card-title" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-chart-pie" style="color: var(--color-primary);"></i>
+                            Chỉ Số Tổng Quan Hệ Thống
+                        </div>
+                        <div style="min-width: 200px;">
+                            <select id="dashboard-filter-month" class="form-control filter-select" style="padding-left: 14px; width: 100%; min-height: 42px;">
+                                <option value="all">Tất cả các tháng</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- METRIC CARDS -->
                 <div class="metrics-grid">
                     <!-- Tổng Điểm Cộng -->
