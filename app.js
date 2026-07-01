@@ -2311,7 +2311,15 @@ function updateUI() {
         .filter(r => (r["Điểm khuyến khích"] || 0) < 0)
         .reduce((sum, r) => sum + r["Điểm khuyến khích"], 0);
 
-    const totalMoney = overviewRecords.reduce((sum, r) => sum + (r["Tiền thưởng"] || 0), 0);
+    // Tính tổng thực chi tiền thưởng (chỉ tính điểm > 0)
+    const totalRewardMoney = overviewRecords
+        .filter(r => (r["Điểm khuyến khích"] || 0) > 0)
+        .reduce((sum, r) => sum + (r["Tiền thưởng"] || 0), 0);
+
+    // Tính tổng tiền giảm trừ (chỉ tính điểm < 0)
+    const totalDeductMoney = overviewRecords
+        .filter(r => (r["Điểm khuyến khích"] || 0) < 0)
+        .reduce((sum, r) => sum + (r["Tiền thưởng"] || 0), 0);
     
     // Đếm nhân sự được thưởng và bị phạt riêng biệt của trang Tổng quan
     const rewardedEmployeesCount = new Set(
@@ -2333,9 +2341,11 @@ function updateUI() {
     if (negPointsEl) negPointsEl.textContent = formatNumber(negativePoints);
     
     const totalMoneyEl = document.getElementById('kpi-total-money');
+    const totalDeductMoneyEl = document.getElementById('kpi-total-deduct-money');
     const rewardedEmployeesEl = document.getElementById('kpi-rewarded-employees');
     const penalizedEmployeesEl = document.getElementById('kpi-penalized-employees');
-    if (totalMoneyEl) totalMoneyEl.textContent = formatCurrency(totalMoney);
+    if (totalMoneyEl) totalMoneyEl.textContent = formatCurrency(totalRewardMoney);
+    if (totalDeductMoneyEl) totalDeductMoneyEl.textContent = formatCurrency(totalDeductMoney);
     if (rewardedEmployeesEl) rewardedEmployeesEl.textContent = rewardedEmployeesCount;
     if (penalizedEmployeesEl) penalizedEmployeesEl.textContent = penalizedEmployeesCount;
 

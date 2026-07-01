@@ -1102,8 +1102,9 @@ select.form-control option {
         border-radius: var(--radius-md);
     }
     
-    /* Make the 3rd card (Thực chi tiền thưởng) full width because it contains the budget and currency which is wider */
-    .metrics-grid .metric-card:nth-child(3) {
+    /* Make the 3rd (Thực chi tiền thưởng) and 4th (Tổng tiền giảm trừ) cards full width because they contain the budget and currency which are wider */
+    .metrics-grid .metric-card:nth-child(3),
+    .metrics-grid .metric-card:nth-child(4) {
         grid-column: span 2;
     }
     
