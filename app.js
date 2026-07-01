@@ -2337,44 +2337,148 @@ function renderHistoryTable(records) {
 
 // RENDER TEAM & EMPLOYEE STATS TABLES
 function renderStatsTables(activeRecords) {
-    // 1. Bảng thống kê theo Tổ
-    const teamStats = {};
+    // 1. Thống kê Khen thưởng theo Tổ
+    const rewardTeamStats = {};
+    const overallRewardStaff = new Set();
+    let overallRewardPoints = 0;
+    let overallRewardMoney = 0;
+
+    // 2. Thống kê Điểm trừ theo Tổ
+    const deductionTeamStats = {};
+    const overallDeductionStaff = new Set();
+    let overallDeductionPoints = 0;
+    let overallDeductionMoney = 0;
+
     activeRecords.forEach(r => {
+        const points = r["Điểm khuyến khích"] || 0;
+        const money = r["Tiền thưởng"] || 0;
+        const month = r["Tháng"] || "";
         const team = r["Tổ"] || "Chưa phân tổ";
-        if (!teamStats[team]) {
-            teamStats[team] = { points: 0, money: 0, employeeCount: new Set() };
+        const maNV = r["Mã nhân viên"];
+
+        if (points > 0) {
+            const key = `${month}_${team}`;
+            if (!rewardTeamStats[key]) {
+                rewardTeamStats[key] = { month, team, points: 0, money: 0, staff: new Set() };
+            }
+            rewardTeamStats[key].points += points;
+            rewardTeamStats[key].money += money;
+            rewardTeamStats[key].staff.add(maNV);
+
+            overallRewardStaff.add(maNV);
+            overallRewardPoints += points;
+            overallRewardMoney += money;
+        } else if (points < 0) {
+            const key = `${month}_${team}`;
+            if (!deductionTeamStats[key]) {
+                deductionTeamStats[key] = { month, team, points: 0, money: 0, staff: new Set() };
+            }
+            deductionTeamStats[key].points += points;
+            deductionTeamStats[key].money += money;
+            deductionTeamStats[key].staff.add(maNV);
+
+            overallDeductionStaff.add(maNV);
+            overallDeductionPoints += points;
+            overallDeductionMoney += money;
         }
-        teamStats[team].points += r["Điểm khuyến khích"] || 0;
-        teamStats[team].money += r["Tiền thưởng"] || 0;
-        teamStats[team].employeeCount.add(r["Mã nhân viên"]);
     });
 
-    const teamTbody = document.getElementById('team-stats-tbody');
-    teamTbody.innerHTML = '';
-    
-    const teamList = Object.keys(teamStats).map(t => ({
-        name: t,
-        points: teamStats[t].points,
-        money: teamStats[t].money,
-        count: teamStats[t].employeeCount.size
-    })).sort((a, b) => b.points - a.points); // Sắp xếp theo tổng điểm giảm dần
+    const getMonthValue = (m) => {
+        if (!m) return 0;
+        const s = m.toString();
+        if (s.length >= 5) {
+            const yr = parseInt(s.substring(s.length - 4)) || 0;
+            const mo = parseInt(s.substring(0, s.length - 4)) || 0;
+            return yr * 100 + mo;
+        }
+        return parseInt(s) || 0;
+    };
 
-    if (teamList.length === 0) {
-        teamTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Không có dữ liệu thống kê.</td></tr>`;
-    } else {
-        teamList.forEach(t => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><strong>${t.name}</strong></td>
-                <td><span class="badge">${t.count} Nhân sự</span></td>
-                <td style="font-weight: 700;">${formatNumber(t.points)}</td>
-                <td style="color: var(--color-accent); font-weight: 700;">${formatCurrency(t.money)}</td>
-            `;
-            teamTbody.appendChild(tr);
-        });
+    // Sắp xếp Thưởng: Tháng giảm dần, Điểm giảm dần
+    const rewardTeamList = Object.values(rewardTeamStats).sort((a, b) => {
+        const valA = getMonthValue(a.month);
+        const valB = getMonthValue(b.month);
+        if (valA !== valB) return valB - valA;
+        return b.points - a.points;
+    });
+
+    // Sắp xếp Phạt: Tháng giảm dần, Điểm tăng dần (điểm trừ nhiều nhất lên đầu)
+    const deductionTeamList = Object.values(deductionTeamStats).sort((a, b) => {
+        const valA = getMonthValue(a.month);
+        const valB = getMonthValue(b.month);
+        if (valA !== valB) return valB - valA;
+        return a.points - b.points;
+    });
+
+    // Render Bảng Thưởng
+    const rewardTbody = document.getElementById('team-reward-stats-tbody');
+    const rewardTfoot = document.getElementById('team-reward-stats-tfoot');
+    
+    if (rewardTbody) {
+        rewardTbody.innerHTML = '';
+        if (rewardTeamList.length === 0) {
+            rewardTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Không có dữ liệu khen thưởng.</td></tr>`;
+        } else {
+            rewardTeamList.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="badge primary">${formatMonthDisplay(t.month)}</span></td>
+                    <td><strong>${t.team}</strong></td>
+                    <td style="text-align: center;"><span class="badge">${t.staff.size} Nhân sự</span></td>
+                    <td style="font-weight: 700; text-align: right; color: var(--text-normal);">${formatNumber(t.points)}</td>
+                    <td style="color: var(--color-accent); font-weight: 700; text-align: right;">${formatCurrency(t.money)}</td>
+                `;
+                rewardTbody.appendChild(tr);
+            });
+        }
     }
 
-    // 2. Bảng thống kê theo Nhân viên
+    if (rewardTfoot) {
+        rewardTfoot.innerHTML = `
+            <tr>
+                <td colspan="2" style="text-transform: uppercase; color: var(--text-muted);">Tổng cộng</td>
+                <td style="text-align: center; color: var(--color-primary); font-weight: 800;">${overallRewardStaff.size} Người</td>
+                <td style="text-align: right; color: var(--text-normal); font-weight: 800;">${formatNumber(overallRewardPoints)}</td>
+                <td style="color: var(--color-accent); font-weight: 800; text-align: right;">${formatCurrency(overallRewardMoney)}</td>
+            </tr>
+        `;
+    }
+
+    // Render Bảng Phạt
+    const deductionTbody = document.getElementById('team-deduction-stats-tbody');
+    const deductionTfoot = document.getElementById('team-deduction-stats-tfoot');
+
+    if (deductionTbody) {
+        deductionTbody.innerHTML = '';
+        if (deductionTeamList.length === 0) {
+            deductionTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Không có dữ liệu điểm trừ.</td></tr>`;
+        } else {
+            deductionTeamList.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="badge primary">${formatMonthDisplay(t.month)}</span></td>
+                    <td><strong>${t.team}</strong></td>
+                    <td style="text-align: center;"><span class="badge">${t.staff.size} Nhân sự</span></td>
+                    <td style="font-weight: 700; text-align: right; color: var(--color-danger);">${formatNumber(t.points)}</td>
+                    <td style="color: var(--color-danger); font-weight: 700; text-align: right;">${formatCurrency(t.money)}</td>
+                `;
+                deductionTbody.appendChild(tr);
+            });
+        }
+    }
+
+    if (deductionTfoot) {
+        deductionTfoot.innerHTML = `
+            <tr>
+                <td colspan="2" style="text-transform: uppercase; color: var(--text-muted);">Tổng cộng</td>
+                <td style="text-align: center; color: var(--color-danger); font-weight: 800;">${overallDeductionStaff.size} Người</td>
+                <td style="text-align: right; color: var(--color-danger); font-weight: 800;">${formatNumber(overallDeductionPoints)}</td>
+                <td style="color: var(--color-danger); font-weight: 800; text-align: right;">${formatCurrency(overallDeductionMoney)}</td>
+            </tr>
+        `;
+    }
+
+    // 3. Bảng thống kê theo Nhân viên
     const empStats = {};
     activeRecords.forEach(r => {
         const key = r["Mã nhân viên"];
@@ -2395,23 +2499,27 @@ function renderStatsTables(activeRecords) {
     });
 
     const empTbody = document.getElementById('employee-stats-tbody');
-    empTbody.innerHTML = '';
-    
-    const empList = Object.values(empStats).sort((a, b) => b.points - a.points);
+    if (empTbody) {
+        empTbody.innerHTML = '';
+        const empList = Object.values(empStats).sort((a, b) => b.points - a.points);
 
-    if (empList.length === 0) {
-        empTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Không có dữ liệu thống kê.</td></tr>`;
-    } else {
-        empList.forEach(e => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><strong>${e.name}</strong> (<code>${e.id}</code>)</td>
-                <td>${e.team}</td>
-                <td style="font-weight: 700;">${formatNumber(e.points)}</td>
-                <td style="color: var(--color-accent); font-weight: 700;">${formatCurrency(e.money)}</td>
-            `;
-            empTbody.appendChild(tr);
-        });
+        if (empList.length === 0) {
+            empTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Không có dữ liệu thống kê nhân viên.</td></tr>`;
+        } else {
+            empList.forEach(e => {
+                const tr = document.createElement('tr');
+                const pointsColor = e.points >= 0 ? 'var(--text-normal)' : 'var(--color-danger)';
+                const moneyColor = e.points >= 0 ? 'var(--color-accent)' : 'var(--color-danger)';
+                
+                tr.innerHTML = `
+                    <td><strong>${e.name}</strong> (<code>${e.id}</code>)</td>
+                    <td>${e.team}</td>
+                    <td style="font-weight: 700; text-align: right; color: ${pointsColor};">${formatNumber(e.points)}</td>
+                    <td style="font-weight: 700; text-align: right; color: ${moneyColor};">${formatCurrency(e.money)}</td>
+                `;
+                empTbody.appendChild(tr);
+            });
+        }
     }
 }
 

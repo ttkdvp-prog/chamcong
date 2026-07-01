@@ -453,45 +453,79 @@
                 </div>
 
                 <!-- Aggregate Statistics Grid -->
-                <div class="stats-container">
-                    <!-- Team Statistics -->
+                <div class="stats-container" style="margin-top: 1.5rem;">
+                    <!-- Team Reward Statistics -->
                     <div class="glass-card">
-                        <div class="card-title">Thống Kê Tổng Hợp Theo Tổ</div>
+                        <div class="card-title" style="color: var(--color-accent); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-circle-up"></i> Thống Kê Khen Thưởng Theo Tổ
+                        </div>
                         <div class="table-container">
                             <table class="data-table">
                                 <thead>
                                     <tr>
+                                        <th>Tháng</th>
                                         <th>Tổ / Bộ Phận</th>
-                                        <th>Số Nhân Sự</th>
-                                        <th>Tổng Điểm</th>
-                                        <th>Tổng Tiền</th>
+                                        <th style="text-align: center;">Số Nhân Sự</th>
+                                        <th style="text-align: right;">Tổng Điểm</th>
+                                        <th style="text-align: right;">Tổng Tiền</th>
                                     </tr>
                                 </thead>
-                                <tbody id="team-stats-tbody">
+                                <tbody id="team-reward-stats-tbody">
                                     <!-- Chèn động bằng Javascript -->
                                 </tbody>
+                                <tfoot id="team-reward-stats-tfoot" style="background: hsla(var(--hue-primary), 20%, 15%, 0.55); font-weight: 700; border-top: 2px solid var(--border-color);">
+                                    <!-- Chèn cộng chân trang bằng Javascript -->
+                                </tfoot>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Employee Statistics -->
+                    <!-- Team Deduction Statistics -->
                     <div class="glass-card">
-                        <div class="card-title">Thống Kê Tổng Hợp Theo Nhân Viên</div>
+                        <div class="card-title" style="color: var(--color-danger); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-circle-down"></i> Thống Kê Điểm Trừ Theo Tổ
+                        </div>
                         <div class="table-container">
                             <table class="data-table">
                                 <thead>
                                     <tr>
-                                        <th>Họ Và Tên</th>
-                                        <th>Tổ</th>
-                                        <th>Tổng Điểm</th>
-                                        <th>Tổng Tiền</th>
+                                        <th>Tháng</th>
+                                        <th>Tổ / Bộ Phận</th>
+                                        <th style="text-align: center;">Số Nhân Sự</th>
+                                        <th style="text-align: right;">Tổng Điểm</th>
+                                        <th style="text-align: right;">Tổng Tiền</th>
                                     </tr>
                                 </thead>
-                                <tbody id="employee-stats-tbody">
+                                <tbody id="team-deduction-stats-tbody">
                                     <!-- Chèn động bằng Javascript -->
                                 </tbody>
+                                <tfoot id="team-deduction-stats-tfoot" style="background: hsla(var(--hue-danger), 20%, 15%, 0.55); font-weight: 700; border-top: 2px solid var(--border-color);">
+                                    <!-- Chèn cộng chân trang bằng Javascript -->
+                                </tfoot>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Employee Statistics (Full Width) -->
+                <div class="glass-card" style="margin-top: 1.5rem;">
+                    <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-user-gear" style="color: var(--color-primary);"></i> Thống Kê Tổng Hợp Theo Nhân Viên
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Họ Và Tên</th>
+                                    <th>Tổ / Bộ Phận</th>
+                                    <th style="text-align: right;">Tổng Điểm</th>
+                                    <th style="text-align: right;">Tổng Tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employee-stats-tbody">
+                                <!-- Chèn động bằng Javascript -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
