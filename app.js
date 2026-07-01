@@ -1428,29 +1428,45 @@ function extractEmployeeDatabase() {
 // POPULATE MONTH SELECTION DROPDOWNS
 function populateMonthSelectors() {
     const filterMonth = document.getElementById('filter-month');
+    const teamFilterMonth = document.getElementById('team-stats-filter-month');
     const months = [...new Set(state.records.map(r => r["Tháng"]))].filter(Boolean);
     
     // Sắp xếp tháng từ mới nhất đến cũ nhất
     months.sort((a, b) => b.localeCompare(a));
     
-    // Lưu giá trị hiện tại để khôi phục
-    const currentVal = filterMonth.value;
-    
-    // Tạo option
-    filterMonth.innerHTML = '<option value="all">Tất cả các tháng</option>';
-    months.forEach(m => {
-        const option = document.createElement('option');
-        option.value = m;
-        // Định dạng tháng hiển thị thân thiện (ví dụ: "52026" -> "Tháng 5/2026")
-        option.textContent = formatMonthDisplay(m);
-        filterMonth.appendChild(option);
-    });
-    
-    if (months.includes(currentVal)) {
-        filterMonth.value = currentVal;
-    } else {
-        filterMonth.value = 'all';
-        state.selectedMonth = 'all';
+    // 1. Lọc Lịch sử & Thống kê
+    if (filterMonth) {
+        const currentVal = filterMonth.value;
+        filterMonth.innerHTML = '<option value="all">Tất cả các tháng</option>';
+        months.forEach(m => {
+            const option = document.createElement('option');
+            option.value = m;
+            option.textContent = formatMonthDisplay(m);
+            filterMonth.appendChild(option);
+        });
+        if (months.includes(currentVal)) {
+            filterMonth.value = currentVal;
+        } else {
+            filterMonth.value = 'all';
+            state.selectedMonth = 'all';
+        }
+    }
+
+    // 2. Lọc Thống kê theo Tổ
+    if (teamFilterMonth) {
+        const currentTeamVal = teamFilterMonth.value;
+        teamFilterMonth.innerHTML = '<option value="all">Tất cả các tháng</option>';
+        months.forEach(m => {
+            const option = document.createElement('option');
+            option.value = m;
+            option.textContent = formatMonthDisplay(m);
+            teamFilterMonth.appendChild(option);
+        });
+        if (months.includes(currentTeamVal)) {
+            teamFilterMonth.value = currentTeamVal;
+        } else {
+            teamFilterMonth.value = 'all';
+        }
     }
 }
 
@@ -1885,6 +1901,26 @@ function setupEventListeners() {
             if (cumulativeContainer) cumulativeContainer.style.display = 'grid';
         });
     }
+
+    // Filters for Team Stats view (with Debounce 300ms)
+    const debouncedRenderTeamStats = debounce(() => {
+        renderStatsTables(getFilteredRecordsForTeamStats());
+    }, 300);
+
+    const teamFilterTeam = document.getElementById('team-stats-filter-team');
+    const teamFilterMonth = document.getElementById('team-stats-filter-month');
+
+    if (teamFilterTeam) {
+        teamFilterTeam.addEventListener('input', () => {
+            debouncedRenderTeamStats();
+        });
+    }
+
+    if (teamFilterMonth) {
+        teamFilterMonth.addEventListener('change', () => {
+            renderStatsTables(getFilteredRecordsForTeamStats());
+        });
+    }
 }
 
 // OPEN EDIT MODAL
@@ -2268,8 +2304,11 @@ function updateUI() {
     // 3. Render Bảng Lịch sử đầy đủ
     renderHistoryTable(filteredRecords);
 
-    // 4. Render Bảng Thống kê Tổ & Nhân viên trong tháng được chọn
-    renderStatsTables(activeRecords);
+    // 4. Render Bảng Thống kê Tổ (dùng bộ lọc riêng của tab thống kê tổ)
+    renderStatsTables(getFilteredRecordsForTeamStats());
+
+    // 5. Render Bảng Thống kê Nhân viên (dùng bộ lọc của tab Lịch sử)
+    renderEmployeeStatsTable(activeRecords);
 }
 
 // RENDER REWARD HISTORY TABLE
@@ -2356,6 +2395,28 @@ function renderHistoryTable(records) {
     });
 }
 
+// TRẢ VỀ DANH SÁCH BẢN GHI LỌC CHO THỐNG KÊ TỔ
+function getFilteredRecordsForTeamStats() {
+    const filterTeamEl = document.getElementById('team-stats-filter-team');
+    const filterMonthEl = document.getElementById('team-stats-filter-month');
+    
+    const filterTeamVal = filterTeamEl ? filterTeamEl.value.trim().toLowerCase() : '';
+    const filterMonthVal = filterMonthEl ? filterMonthEl.value : 'all';
+    
+    return state.records.filter(r => {
+        // Lọc theo tổ
+        if (filterTeamVal) {
+            const team = (r["Tổ"] || "").toLowerCase();
+            if (!team.includes(filterTeamVal)) return false;
+        }
+        // Lọc theo tháng
+        if (filterMonthVal !== 'all') {
+            if (r["Tháng"] !== filterMonthVal) return false;
+        }
+        return true;
+    });
+}
+
 // RENDER TEAM & EMPLOYEE STATS TABLES
 function renderStatsTables(activeRecords) {
     // -------------------------------------------------------------
@@ -2384,10 +2445,7 @@ function renderStatsTables(activeRecords) {
     let overallDeductionCumulativePoints = 0;
     let overallDeductionCumulativeMoney = 0;
 
-    // -------------------------------------------------------------
-    // 3. THỐNG KÊ THEO NHÂN VIÊN
-    // -------------------------------------------------------------
-    const empStats = {};
+
 
     activeRecords.forEach(r => {
         const points = r["Điểm khuyến khích"] || 0;
@@ -2450,20 +2508,7 @@ function renderStatsTables(activeRecords) {
             overallDeductionCumulativeMoney += money;
         }
 
-        // C. Nhân Viên
-        if (!empStats[maNV]) {
-            const emp = state.employees.find(e => e.maNV === maNV);
-            const displayName = emp ? emp.tenNV : (r["Tên Nhân viên"] || "Chưa xác định");
-            empStats[maNV] = {
-                id: maNV,
-                name: displayName,
-                team: team,
-                points: 0,
-                money: 0
-            };
-        }
-        empStats[maNV].points += points;
-        empStats[maNV].money += money;
+
     });
 
     const getMonthValue = (m) => {
@@ -2628,9 +2673,29 @@ function renderStatsTables(activeRecords) {
         `;
     }
 
-    // -------------------------------------------------------------
-    // C. RENDER BẢNG NHÂN VIÊN
-    // -------------------------------------------------------------
+}
+
+// RENDER EMPLOYEE STATS TABLE
+function renderEmployeeStatsTable(activeRecords) {
+    const empStats = {};
+    activeRecords.forEach(r => {
+        const key = r["Mã nhân viên"];
+        if (!empStats[key]) {
+            const emp = state.employees.find(e => e.maNV === key);
+            const displayName = emp ? emp.tenNV : (r["Tên Nhân viên"] || "Chưa xác định");
+            
+            empStats[key] = {
+                id: r["Mã nhân viên"],
+                name: displayName,
+                team: r["Tổ"] || "Chưa phân tổ",
+                points: 0,
+                money: 0
+            };
+        }
+        empStats[key].points += r["Điểm khuyến khích"] || 0;
+        empStats[key].money += r["Tiền thưởng"] || 0;
+    });
+
     const empTbody = document.getElementById('employee-stats-tbody');
     if (empTbody) {
         empTbody.innerHTML = '';
