@@ -14,7 +14,9 @@ let state = {
     sort: {
         key: 'STT',
         direction: 'asc'
-    }
+    },
+    lockedMonths: [],
+    isAdmin: false
 };
 
 // INITIAL MOCK DATA (Lấy từ sheet thực tế của người dùng và bổ sung mẫu)
@@ -1187,6 +1189,18 @@ async function fetchDanhBaLive() {
     }
 }
 
+// HÀM TRỢ GIÚP LẤY THÁNG TRƯỚC MẶC ĐỊNH (ĐỊNH DẠNG TTrrrr)
+function getDefaultMonthFormatted() {
+    const now = new Date();
+    let prevMonth = now.getMonth(); // 0-indexed, so 0 is Jan (which means it defaults to last month's index)
+    let prevYear = now.getFullYear();
+    if (prevMonth === 0) { // Nếu là tháng 1, tháng trước là tháng 12 năm trước
+        prevMonth = 12;
+        prevYear -= 1;
+    }
+    return prevMonth + "" + prevYear;
+}
+
 // LOAD SETTINGS FROM LOCALSTORAGE
 function loadLocalSettings() {
     const defaultUrl = 'https://script.google.com/macros/s/AKfycbyjB80DEs4THeZmo_sHF9hBo_q_-U5mE4ixU8EJW910kjIXP7HJavrfmKYXn2n4-x9g/exec';
@@ -1198,13 +1212,12 @@ function loadLocalSettings() {
         apiUrlInput.value = state.apiUrl;
     }
     
-    // Tự động điền tháng hiện tại vào form nhập
-    const now = new Date();
-    const currentMonthFormatted = (now.getMonth() + 1) + "" + now.getFullYear();
-    document.getElementById('reward-month').value = currentMonthFormatted;
+    // Tự động điền tháng trước vào form nhập (vì đa phần sẽ nhập quyết định tháng trước)
+    const prevMonthFormatted = getDefaultMonthFormatted();
+    document.getElementById('reward-month').value = prevMonthFormatted;
     const deductMonthEl = document.getElementById('deduct-month');
     if (deductMonthEl) {
-        deductMonthEl.value = currentMonthFormatted;
+        deductMonthEl.value = prevMonthFormatted;
     }
 }
 
@@ -1224,7 +1237,18 @@ async function refreshData(isManual = false) {
             if (statusText) statusText.textContent = "Đang kết nối...";
             setStatusClass("");
             
-            const response = await fetch(state.apiUrl, { method: 'GET' });
+            // Đọc mã bảo mật từ localStorage gửi kèm lên server
+            const passcode = localStorage.getItem('admin_passcode') || '';
+            let requestUrl = state.apiUrl;
+            try {
+                const urlObj = new URL(state.apiUrl);
+                urlObj.searchParams.append('passcode', passcode);
+                requestUrl = urlObj.toString();
+            } catch(e) {
+                // url không hợp lệ
+            }
+            
+            const response = await fetch(requestUrl, { method: 'GET' });
             const result = await response.json();
             
             if (result.status === "success") {
@@ -1237,6 +1261,15 @@ async function refreshData(isManual = false) {
                     state.employees = result.employees;
                     MOCK_EMPLOYEES.length = 0;
                     MOCK_EMPLOYEES.push(...result.employees);
+                }
+
+                // Cập nhật cấu hình khóa tháng & trạng thái Admin từ server
+                if (result.config) {
+                    state.lockedMonths = (result.config.lockedMonths || "").split(",").map(m => m.trim()).filter(Boolean);
+                    state.isAdmin = !!result.config.isAdmin;
+                } else {
+                    state.lockedMonths = [];
+                    state.isAdmin = false;
                 }
                 
                 state.isLive = true;
@@ -1697,6 +1730,12 @@ function setupEventListeners() {
                 showToast("Vui lòng nhập đầy đủ thông tin bắt buộc!", "error");
                 return;
             }
+
+            // Kiểm tra khóa chốt tháng
+            if (state.lockedMonths && state.lockedMonths.includes(thang) && !state.isAdmin) {
+                showToast(`Tháng ${formatMonthDisplay(thang)} đã được chốt và khóa! Chỉ Admin mới có quyền thêm mới.`, "error");
+                return;
+            }
             
             submitBtn.disabled = true;
             submitBtn.textContent = "Đang xử lý...";
@@ -1709,7 +1748,8 @@ function setupEventListeners() {
                 to,
                 diem,
                 lyDo,
-                timestamp
+                timestamp,
+                passcode: localStorage.getItem('admin_passcode') || ''
             };
             
             if (state.isLive && state.apiUrl) {
@@ -1739,6 +1779,7 @@ function setupEventListeners() {
                     if (success) {
                         showToast("Điểm thưởng đã được gửi và lưu thành công trên Google Sheets!", "success");
                         rewardForm.reset();
+                        document.getElementById('reward-month').value = getDefaultMonthFormatted();
                         moneyPreview.textContent = "0 đ";
                         
                         setTimeout(async () => {
@@ -1794,6 +1835,12 @@ function setupEventListeners() {
                 showToast("Vui lòng nhập đầy đủ thông tin bắt buộc!", "error");
                 return;
             }
+
+            // Kiểm tra khóa chốt tháng
+            if (state.lockedMonths && state.lockedMonths.includes(thang) && !state.isAdmin) {
+                showToast(`Tháng ${formatMonthDisplay(thang)} đã được chốt và khóa! Chỉ Admin mới có quyền thêm mới.`, "error");
+                return;
+            }
             
             submitDeductBtn.disabled = true;
             submitDeductBtn.textContent = "Đang xử lý...";
@@ -1806,7 +1853,8 @@ function setupEventListeners() {
                 to,
                 diem,
                 lyDo,
-                timestamp
+                timestamp,
+                passcode: localStorage.getItem('admin_passcode') || ''
             };
             
             if (state.isLive && state.apiUrl) {
@@ -1836,6 +1884,8 @@ function setupEventListeners() {
                     if (success) {
                         showToast("Điểm trừ đã được gửi và lưu thành công trên Google Sheets!", "success");
                         deductForm.reset();
+                        const deductMonthEl = document.getElementById('deduct-month');
+                        if (deductMonthEl) deductMonthEl.value = getDefaultMonthFormatted();
                         deductMoneyPreview.textContent = "0 đ";
                         
                         setTimeout(async () => {
@@ -1949,6 +1999,95 @@ function setupEventListeners() {
         });
     }
 
+    // Control for settings modal
+    const settingsModal = document.getElementById('settings-modal');
+    const openSettingsBtn = document.getElementById('btn-open-settings');
+    const closeSettingsBtn = document.getElementById('close-settings-modal-btn');
+    const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+    const settingsForm = document.getElementById('settings-form');
+    
+    const showSettingsModal = () => {
+        if (settingsModal) {
+            document.getElementById('settings-api-url').value = state.apiUrl || '';
+            document.getElementById('settings-admin-passcode').value = localStorage.getItem('admin_passcode') || '';
+            document.getElementById('settings-locked-months').value = state.lockedMonths ? state.lockedMonths.join(", ") : '';
+            settingsModal.classList.add('active');
+        }
+    };
+    
+    const hideSettingsModal = () => {
+        if (settingsModal) {
+            settingsModal.classList.remove('active');
+        }
+    };
+    
+    if (openSettingsBtn) openSettingsBtn.addEventListener('click', showSettingsModal);
+    if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', hideSettingsModal);
+    if (cancelSettingsBtn) cancelSettingsBtn.addEventListener('click', hideSettingsModal);
+    if (settingsModal) {
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) hideSettingsModal();
+        });
+    }
+
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const apiUrlVal = document.getElementById('settings-api-url').value.trim();
+            const passcodeVal = document.getElementById('settings-admin-passcode').value.trim();
+            const lockedMonthsVal = document.getElementById('settings-locked-months').value.trim();
+            
+            // Save API URL locally
+            localStorage.setItem('reward_api_url', apiUrlVal);
+            state.apiUrl = apiUrlVal;
+            
+            // Save passcode locally
+            localStorage.setItem('admin_passcode', passcodeVal);
+            
+            // Submit to the server if live
+            if (state.isLive && state.apiUrl) {
+                const saveSettingsBtn = document.getElementById('save-settings-btn');
+                if (saveSettingsBtn) {
+                    saveSettingsBtn.disabled = true;
+                    saveSettingsBtn.textContent = "Đang gửi...";
+                }
+                
+                try {
+                    const res = await fetch(state.apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'save_config',
+                            passcode: passcodeVal,
+                            lockedMonths: lockedMonthsVal
+                        })
+                    });
+                    const result = await res.json();
+                    if (result.status === 'success') {
+                        showToast("Đã cập nhật cấu hình bảo mật lên Google Sheets thành công!", "success");
+                        hideSettingsModal();
+                        await refreshData(true);
+                    } else {
+                        showToast("Lỗi lưu cấu hình: " + result.message, "error");
+                    }
+                } catch(err) {
+                    showToast("Không thể kết nối lưu cấu hình bảo mật. Đang chuyển cấu hình cục bộ.", "warning");
+                    hideSettingsModal();
+                    await refreshData(true);
+                } finally {
+                    if (saveSettingsBtn) {
+                        saveSettingsBtn.disabled = false;
+                        saveSettingsBtn.textContent = "Lưu Cấu Hình";
+                    }
+                }
+            } else {
+                showToast("Đã lưu thiết lập API cục bộ (Chế độ offline).", "success");
+                hideSettingsModal();
+                await refreshData(true);
+            }
+        });
+    }
+
     // Filter for Overview (Dashboard) view
     const dashboardFilterMonth = document.getElementById('dashboard-filter-month');
     if (dashboardFilterMonth) {
@@ -1996,6 +2135,14 @@ async function handleEditSubmit() {
         showToast("Vui lòng điền đầy đủ các thông tin bắt buộc!", "error");
         return;
     }
+
+    // Kiểm tra khóa chốt tháng
+    const oldRecord = state.records.find(r => Number(r["STT"]) === Number(stt));
+    const oldMonth = oldRecord ? oldRecord["Tháng"] : "";
+    if (state.lockedMonths && (state.lockedMonths.includes(thang) || state.lockedMonths.includes(oldMonth)) && !state.isAdmin) {
+        showToast("Thao tác bị từ chối! Tháng này đã chốt và khóa.", "error");
+        return;
+    }
     
     const editBtn = document.getElementById('save-edit-btn');
     if (editBtn) {
@@ -2039,7 +2186,8 @@ async function handleEditSubmit() {
                 thang,
                 diem,
                 lyDo,
-                timestamp
+                timestamp,
+                passcode: localStorage.getItem('admin_passcode') || ''
             };
             
             showToast("Đang đồng bộ thay đổi chỉnh sửa lên Google Sheets...", "info");
@@ -2114,6 +2262,13 @@ async function handleDeleteRecord(stt) {
     const record = state.records.find(r => Number(r["STT"]) === Number(stt));
     if (!record) return;
     
+    // Kiểm tra khóa chốt tháng
+    const monthVal = record["Tháng"] ? record["Tháng"].toString() : "";
+    if (state.lockedMonths && state.lockedMonths.includes(monthVal) && !state.isAdmin) {
+        showToast(`Tháng ${formatMonthDisplay(monthVal)} đã được chốt và khóa! Bạn không có quyền xóa bản ghi này.`, "error");
+        return;
+    }
+
     const maNV = record["Mã nhân viên"];
     const emp = state.employees.find(e => e.maNV === maNV);
     const displayName = emp ? emp.tenNV : (record["Tên Nhân viên"] || "Chưa xác định");
@@ -2135,7 +2290,8 @@ async function handleDeleteRecord(stt) {
             showToast("Đang đồng bộ yêu cầu xóa lên Google Sheets...", "info");
             const payload = {
                 action: "delete",
-                stt
+                stt,
+                passcode: localStorage.getItem('admin_passcode') || ''
             };
             
             const res = await fetch(state.apiUrl, {
@@ -2395,12 +2551,18 @@ function renderHistoryTable(records) {
             </td>
             <td data-label="Thao tác">
                 <div class="action-buttons-container">
-                    <button class="btn-action edit" title="Sửa bản ghi này">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-                    <button class="btn-action delete" title="Xóa bản ghi này">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
+                    ${(state.lockedMonths && state.lockedMonths.includes(r["Tháng"] ? r["Tháng"].toString() : "") && !state.isAdmin) ? `
+                        <span style="color: var(--color-danger); font-size: 0.85rem; display: flex; align-items: center; gap: 4px; font-weight: 600;" title="Tháng này đã được chốt và khóa. Chỉ Admin mới được sửa.">
+                            <i class="fa-solid fa-lock"></i> Đã Chốt
+                        </span>
+                    ` : `
+                        <button class="btn-action edit" title="Sửa bản ghi này">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button class="btn-action delete" title="Xóa bản ghi này">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    `}
                 </div>
             </td>
         `;
