@@ -8,7 +8,7 @@ let state = {
         searchId: '',
         searchTeam: ''
     },
-    apiUrl: localStorage.getItem('reward_api_url') || 'https://script.google.com/macros/s/AKfycbwNXm3dPsURS3F-5dX4CW-R0mTaTCBKf9yHhj0stX3Qq5CvWncwUQi56KcKmSHSxKsDbw/exec',
+    apiUrl: localStorage.getItem('reward_api_url') || 'https://script.google.com/macros/s/AKfycbyjB80DEs4THeZmo_sHF9hBo_q_-U5mE4ixU8EJW910kjIXP7HJavrfmKYXn2n4-x9g/exec',
     isLive: false,
     sort: {
         key: 'STT',
@@ -1188,7 +1188,7 @@ async function fetchDanhBaLive() {
 
 // LOAD SETTINGS FROM LOCALSTORAGE
 function loadLocalSettings() {
-    const defaultUrl = 'https://script.google.com/macros/s/AKfycbwNXm3dPsURS3F-5dX4CW-R0mTaTCBKf9yHhj0stX3Qq5CvWncwUQi56KcKmSHSxKsDbw/exec';
+    const defaultUrl = 'https://script.google.com/macros/s/AKfycbyjB80DEs4THeZmo_sHF9hBo_q_-U5mE4ixU8EJW910kjIXP7HJavrfmKYXn2n4-x9g/exec';
     const savedUrl = localStorage.getItem('reward_api_url');
     state.apiUrl = savedUrl || defaultUrl;
     
