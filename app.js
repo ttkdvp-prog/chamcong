@@ -1864,6 +1864,27 @@ function setupEventListeners() {
             await handleEditSubmit();
         });
     }
+    // Toggle Monthly vs Cumulative in Team Stats view
+    const toggleMonthlyBtn = document.getElementById('btn-toggle-monthly');
+    const toggleCumulativeBtn = document.getElementById('btn-toggle-cumulative');
+    const monthlyContainer = document.getElementById('monthly-stats-container');
+    const cumulativeContainer = document.getElementById('cumulative-stats-container');
+
+    if (toggleMonthlyBtn && toggleCumulativeBtn) {
+        toggleMonthlyBtn.addEventListener('click', () => {
+            toggleMonthlyBtn.classList.add('active');
+            toggleCumulativeBtn.classList.remove('active');
+            if (monthlyContainer) monthlyContainer.style.display = 'grid';
+            if (cumulativeContainer) cumulativeContainer.style.display = 'none';
+        });
+
+        toggleCumulativeBtn.addEventListener('click', () => {
+            toggleCumulativeBtn.classList.add('active');
+            toggleMonthlyBtn.classList.remove('active');
+            if (monthlyContainer) monthlyContainer.style.display = 'none';
+            if (cumulativeContainer) cumulativeContainer.style.display = 'grid';
+        });
+    }
 }
 
 // OPEN EDIT MODAL
@@ -2138,7 +2159,7 @@ function handleHashRouting() {
     const hash = window.location.hash.replace('#', '') || 'dashboard';
     
     // Kiểm tra tính hợp lệ của tab
-    const validTabs = ['dashboard', 'reward', 'deduct', 'history'];
+    const validTabs = ['dashboard', 'reward', 'deduct', 'history', 'team-stats'];
     const tabName = validTabs.includes(hash) ? hash : 'dashboard';
     
     const views = document.querySelectorAll('.page-view');
@@ -2337,17 +2358,36 @@ function renderHistoryTable(records) {
 
 // RENDER TEAM & EMPLOYEE STATS TABLES
 function renderStatsTables(activeRecords) {
-    // 1. Thống kê Khen thưởng theo Tổ
-    const rewardTeamStats = {};
-    const overallRewardStaff = new Set();
-    let overallRewardPoints = 0;
-    let overallRewardMoney = 0;
+    // -------------------------------------------------------------
+    // 1. GOM NHÓM THEO THÁNG (MONHTLY TEAM STATS)
+    // -------------------------------------------------------------
+    const rewardMonthlyStats = {};
+    const overallRewardMonthlyStaff = new Set();
+    let overallRewardMonthlyPoints = 0;
+    let overallRewardMonthlyMoney = 0;
 
-    // 2. Thống kê Điểm trừ theo Tổ
-    const deductionTeamStats = {};
-    const overallDeductionStaff = new Set();
-    let overallDeductionPoints = 0;
-    let overallDeductionMoney = 0;
+    const deductionMonthlyStats = {};
+    const overallDeductionMonthlyStaff = new Set();
+    let overallDeductionMonthlyPoints = 0;
+    let overallDeductionMonthlyMoney = 0;
+
+    // -------------------------------------------------------------
+    // 2. GOM NHÓM LŨY KẾ (CUMULATIVE TEAM STATS)
+    // -------------------------------------------------------------
+    const rewardCumulativeStats = {};
+    const overallRewardCumulativeStaff = new Set();
+    let overallRewardCumulativePoints = 0;
+    let overallRewardCumulativeMoney = 0;
+
+    const deductionCumulativeStats = {};
+    const overallDeductionCumulativeStaff = new Set();
+    let overallDeductionCumulativePoints = 0;
+    let overallDeductionCumulativeMoney = 0;
+
+    // -------------------------------------------------------------
+    // 3. THỐNG KÊ THEO NHÂN VIÊN
+    // -------------------------------------------------------------
+    const empStats = {};
 
     activeRecords.forEach(r => {
         const points = r["Điểm khuyến khích"] || 0;
@@ -2356,31 +2396,74 @@ function renderStatsTables(activeRecords) {
         const team = r["Tổ"] || "Chưa phân tổ";
         const maNV = r["Mã nhân viên"];
 
+        // Phân loại Thưởng vs Phạt
         if (points > 0) {
-            const key = `${month}_${team}`;
-            if (!rewardTeamStats[key]) {
-                rewardTeamStats[key] = { month, team, points: 0, money: 0, staff: new Set() };
+            // A. Theo Tháng
+            const keyMonthly = `${month}_${team}`;
+            if (!rewardMonthlyStats[keyMonthly]) {
+                rewardMonthlyStats[keyMonthly] = { month, team, points: 0, money: 0, staff: new Set() };
             }
-            rewardTeamStats[key].points += points;
-            rewardTeamStats[key].money += money;
-            rewardTeamStats[key].staff.add(maNV);
+            rewardMonthlyStats[keyMonthly].points += points;
+            rewardMonthlyStats[keyMonthly].money += money;
+            rewardMonthlyStats[keyMonthly].staff.add(maNV);
 
-            overallRewardStaff.add(maNV);
-            overallRewardPoints += points;
-            overallRewardMoney += money;
+            overallRewardMonthlyStaff.add(maNV);
+            overallRewardMonthlyPoints += points;
+            overallRewardMonthlyMoney += money;
+
+            // B. Lũy Kế (Không phân biệt tháng)
+            if (!rewardCumulativeStats[team]) {
+                rewardCumulativeStats[team] = { team, points: 0, money: 0, staff: new Set() };
+            }
+            rewardCumulativeStats[team].points += points;
+            rewardCumulativeStats[team].money += money;
+            rewardCumulativeStats[team].staff.add(maNV);
+
+            overallRewardCumulativeStaff.add(maNV);
+            overallRewardCumulativePoints += points;
+            overallRewardCumulativeMoney += money;
+
         } else if (points < 0) {
-            const key = `${month}_${team}`;
-            if (!deductionTeamStats[key]) {
-                deductionTeamStats[key] = { month, team, points: 0, money: 0, staff: new Set() };
+            // A. Theo Tháng
+            const keyMonthly = `${month}_${team}`;
+            if (!deductionMonthlyStats[keyMonthly]) {
+                deductionMonthlyStats[keyMonthly] = { month, team, points: 0, money: 0, staff: new Set() };
             }
-            deductionTeamStats[key].points += points;
-            deductionTeamStats[key].money += money;
-            deductionTeamStats[key].staff.add(maNV);
+            deductionMonthlyStats[keyMonthly].points += points;
+            deductionMonthlyStats[keyMonthly].money += money;
+            deductionMonthlyStats[keyMonthly].staff.add(maNV);
 
-            overallDeductionStaff.add(maNV);
-            overallDeductionPoints += points;
-            overallDeductionMoney += money;
+            overallDeductionMonthlyStaff.add(maNV);
+            overallDeductionMonthlyPoints += points;
+            overallDeductionMonthlyMoney += money;
+
+            // B. Lũy Kế (Không phân biệt tháng)
+            if (!deductionCumulativeStats[team]) {
+                deductionCumulativeStats[team] = { team, points: 0, money: 0, staff: new Set() };
+            }
+            deductionCumulativeStats[team].points += points;
+            deductionCumulativeStats[team].money += money;
+            deductionCumulativeStats[team].staff.add(maNV);
+
+            overallDeductionCumulativeStaff.add(maNV);
+            overallDeductionCumulativePoints += points;
+            overallDeductionCumulativeMoney += money;
         }
+
+        // C. Nhân Viên
+        if (!empStats[maNV]) {
+            const emp = state.employees.find(e => e.maNV === maNV);
+            const displayName = emp ? emp.tenNV : (r["Tên Nhân viên"] || "Chưa xác định");
+            empStats[maNV] = {
+                id: maNV,
+                name: displayName,
+                team: team,
+                points: 0,
+                money: 0
+            };
+        }
+        empStats[maNV].points += points;
+        empStats[maNV].money += money;
     });
 
     const getMonthValue = (m) => {
@@ -2394,32 +2477,37 @@ function renderStatsTables(activeRecords) {
         return parseInt(s) || 0;
     };
 
-    // Sắp xếp Thưởng: Tháng giảm dần, Điểm giảm dần
-    const rewardTeamList = Object.values(rewardTeamStats).sort((a, b) => {
+    // Sắp xếp danh sách Theo Tháng
+    const rewardMonthlyList = Object.values(rewardMonthlyStats).sort((a, b) => {
         const valA = getMonthValue(a.month);
         const valB = getMonthValue(b.month);
         if (valA !== valB) return valB - valA;
         return b.points - a.points;
     });
 
-    // Sắp xếp Phạt: Tháng giảm dần, Điểm tăng dần (điểm trừ nhiều nhất lên đầu)
-    const deductionTeamList = Object.values(deductionTeamStats).sort((a, b) => {
+    const deductionMonthlyList = Object.values(deductionMonthlyStats).sort((a, b) => {
         const valA = getMonthValue(a.month);
         const valB = getMonthValue(b.month);
         if (valA !== valB) return valB - valA;
-        return a.points - b.points;
+        return a.points - b.points; // Điểm trừ nhiều nhất lên đầu
     });
 
-    // Render Bảng Thưởng
-    const rewardTbody = document.getElementById('team-reward-stats-tbody');
-    const rewardTfoot = document.getElementById('team-reward-stats-tfoot');
-    
-    if (rewardTbody) {
-        rewardTbody.innerHTML = '';
-        if (rewardTeamList.length === 0) {
-            rewardTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Không có dữ liệu khen thưởng.</td></tr>`;
+    // Sắp xếp danh sách Lũy Kế
+    const rewardCumulativeList = Object.values(rewardCumulativeStats).sort((a, b) => b.points - a.points);
+    const deductionCumulativeList = Object.values(deductionCumulativeStats).sort((a, b) => a.points - b.points);
+
+    // -------------------------------------------------------------
+    // A. RENDER CÁC BẢNG THEO THÁNG
+    // -------------------------------------------------------------
+    // 1. Thưởng Theo Tháng
+    const rewardMonthlyTbody = document.getElementById('team-reward-monthly-tbody');
+    const rewardMonthlyTfoot = document.getElementById('team-reward-monthly-tfoot');
+    if (rewardMonthlyTbody) {
+        rewardMonthlyTbody.innerHTML = '';
+        if (rewardMonthlyList.length === 0) {
+            rewardMonthlyTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Không có dữ liệu khen thưởng tháng.</td></tr>`;
         } else {
-            rewardTeamList.forEach(t => {
+            rewardMonthlyList.forEach(t => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><span class="badge primary">${formatMonthDisplay(t.month)}</span></td>
@@ -2428,32 +2516,30 @@ function renderStatsTables(activeRecords) {
                     <td style="font-weight: 700; text-align: right; color: var(--text-normal);">${formatNumber(t.points)}</td>
                     <td style="color: var(--color-accent); font-weight: 700; text-align: right;">${formatCurrency(t.money)}</td>
                 `;
-                rewardTbody.appendChild(tr);
+                rewardMonthlyTbody.appendChild(tr);
             });
         }
     }
-
-    if (rewardTfoot) {
-        rewardTfoot.innerHTML = `
+    if (rewardMonthlyTfoot) {
+        rewardMonthlyTfoot.innerHTML = `
             <tr>
                 <td colspan="2" style="text-transform: uppercase; color: var(--text-muted);">Tổng cộng</td>
-                <td style="text-align: center; color: var(--color-primary); font-weight: 800;">${overallRewardStaff.size} Người</td>
-                <td style="text-align: right; color: var(--text-normal); font-weight: 800;">${formatNumber(overallRewardPoints)}</td>
-                <td style="color: var(--color-accent); font-weight: 800; text-align: right;">${formatCurrency(overallRewardMoney)}</td>
+                <td style="text-align: center; color: var(--color-primary); font-weight: 800;">${overallRewardMonthlyStaff.size} Người</td>
+                <td style="text-align: right; color: var(--text-normal); font-weight: 800;">${formatNumber(overallRewardMonthlyPoints)}</td>
+                <td style="color: var(--color-accent); font-weight: 800; text-align: right;">${formatCurrency(overallRewardMonthlyMoney)}</td>
             </tr>
         `;
     }
 
-    // Render Bảng Phạt
-    const deductionTbody = document.getElementById('team-deduction-stats-tbody');
-    const deductionTfoot = document.getElementById('team-deduction-stats-tfoot');
-
-    if (deductionTbody) {
-        deductionTbody.innerHTML = '';
-        if (deductionTeamList.length === 0) {
-            deductionTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Không có dữ liệu điểm trừ.</td></tr>`;
+    // 2. Phạt Theo Tháng
+    const deductionMonthlyTbody = document.getElementById('team-deduction-monthly-tbody');
+    const deductionMonthlyTfoot = document.getElementById('team-deduction-monthly-tfoot');
+    if (deductionMonthlyTbody) {
+        deductionMonthlyTbody.innerHTML = '';
+        if (deductionMonthlyList.length === 0) {
+            deductionMonthlyTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Không có dữ liệu điểm trừ tháng.</td></tr>`;
         } else {
-            deductionTeamList.forEach(t => {
+            deductionMonthlyList.forEach(t => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><span class="badge primary">${formatMonthDisplay(t.month)}</span></td>
@@ -2462,42 +2548,89 @@ function renderStatsTables(activeRecords) {
                     <td style="font-weight: 700; text-align: right; color: var(--color-danger);">${formatNumber(t.points)}</td>
                     <td style="color: var(--color-danger); font-weight: 700; text-align: right;">${formatCurrency(t.money)}</td>
                 `;
-                deductionTbody.appendChild(tr);
+                deductionMonthlyTbody.appendChild(tr);
             });
         }
     }
-
-    if (deductionTfoot) {
-        deductionTfoot.innerHTML = `
+    if (deductionMonthlyTfoot) {
+        deductionMonthlyTfoot.innerHTML = `
             <tr>
                 <td colspan="2" style="text-transform: uppercase; color: var(--text-muted);">Tổng cộng</td>
-                <td style="text-align: center; color: var(--color-danger); font-weight: 800;">${overallDeductionStaff.size} Người</td>
-                <td style="text-align: right; color: var(--color-danger); font-weight: 800;">${formatNumber(overallDeductionPoints)}</td>
-                <td style="color: var(--color-danger); font-weight: 800; text-align: right;">${formatCurrency(overallDeductionMoney)}</td>
+                <td style="text-align: center; color: var(--color-danger); font-weight: 800;">${overallDeductionMonthlyStaff.size} Người</td>
+                <td style="text-align: right; color: var(--color-danger); font-weight: 800;">${formatNumber(overallDeductionMonthlyPoints)}</td>
+                <td style="color: var(--color-danger); font-weight: 800; text-align: right;">${formatCurrency(overallDeductionMonthlyMoney)}</td>
             </tr>
         `;
     }
 
-    // 3. Bảng thống kê theo Nhân viên
-    const empStats = {};
-    activeRecords.forEach(r => {
-        const key = r["Mã nhân viên"];
-        if (!empStats[key]) {
-            const emp = state.employees.find(e => e.maNV === key);
-            const displayName = emp ? emp.tenNV : (r["Tên Nhân viên"] || "Chưa xác định");
-            
-            empStats[key] = {
-                id: r["Mã nhân viên"],
-                name: displayName,
-                team: r["Tổ"] || "Chưa phân tổ",
-                points: 0,
-                money: 0
-            };
+    // -------------------------------------------------------------
+    // B. RENDER CÁC BẢNG LŨY KẾ
+    // -------------------------------------------------------------
+    // 1. Thưởng Lũy Kế
+    const rewardCumulativeTbody = document.getElementById('team-reward-cumulative-tbody');
+    const rewardCumulativeTfoot = document.getElementById('team-reward-cumulative-tfoot');
+    if (rewardCumulativeTbody) {
+        rewardCumulativeTbody.innerHTML = '';
+        if (rewardCumulativeList.length === 0) {
+            rewardCumulativeTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Không có dữ liệu khen thưởng lũy kế.</td></tr>`;
+        } else {
+            rewardCumulativeList.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${t.team}</strong></td>
+                    <td style="text-align: center;"><span class="badge">${t.staff.size} Nhân sự</span></td>
+                    <td style="font-weight: 700; text-align: right; color: var(--text-normal);">${formatNumber(t.points)}</td>
+                    <td style="color: var(--color-accent); font-weight: 700; text-align: right;">${formatCurrency(t.money)}</td>
+                `;
+                rewardCumulativeTbody.appendChild(tr);
+            });
         }
-        empStats[key].points += r["Điểm khuyến khích"] || 0;
-        empStats[key].money += r["Tiền thưởng"] || 0;
-    });
+    }
+    if (rewardCumulativeTfoot) {
+        rewardCumulativeTfoot.innerHTML = `
+            <tr>
+                <td style="text-transform: uppercase; color: var(--text-muted);">Tổng cộng</td>
+                <td style="text-align: center; color: var(--color-primary); font-weight: 800;">${overallRewardCumulativeStaff.size} Người</td>
+                <td style="text-align: right; color: var(--text-normal); font-weight: 800;">${formatNumber(overallRewardCumulativePoints)}</td>
+                <td style="color: var(--color-accent); font-weight: 800; text-align: right;">${formatCurrency(overallRewardCumulativeMoney)}</td>
+            </tr>
+        `;
+    }
 
+    // 2. Phạt Lũy Kế
+    const deductionCumulativeTbody = document.getElementById('team-deduction-cumulative-tbody');
+    const deductionCumulativeTfoot = document.getElementById('team-deduction-cumulative-tfoot');
+    if (deductionCumulativeTbody) {
+        deductionCumulativeTbody.innerHTML = '';
+        if (deductionCumulativeList.length === 0) {
+            deductionCumulativeTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Không có dữ liệu điểm trừ lũy kế.</td></tr>`;
+        } else {
+            deductionCumulativeList.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${t.team}</strong></td>
+                    <td style="text-align: center;"><span class="badge">${t.staff.size} Nhân sự</span></td>
+                    <td style="font-weight: 700; text-align: right; color: var(--color-danger);">${formatNumber(t.points)}</td>
+                    <td style="color: var(--color-danger); font-weight: 700; text-align: right;">${formatCurrency(t.money)}</td>
+                `;
+                deductionCumulativeTbody.appendChild(tr);
+            });
+        }
+    }
+    if (deductionCumulativeTfoot) {
+        deductionCumulativeTfoot.innerHTML = `
+            <tr>
+                <td style="text-transform: uppercase; color: var(--text-muted);">Tổng cộng</td>
+                <td style="text-align: center; color: var(--color-danger); font-weight: 800;">${overallDeductionCumulativeStaff.size} Người</td>
+                <td style="text-align: right; color: var(--color-danger); font-weight: 800;">${formatNumber(overallDeductionCumulativePoints)}</td>
+                <td style="color: var(--color-danger); font-weight: 800; text-align: right;">${formatCurrency(overallDeductionCumulativeMoney)}</td>
+            </tr>
+        `;
+    }
+
+    // -------------------------------------------------------------
+    // C. RENDER BẢNG NHÂN VIÊN
+    // -------------------------------------------------------------
     const empTbody = document.getElementById('employee-stats-tbody');
     if (empTbody) {
         empTbody.innerHTML = '';

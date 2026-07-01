@@ -47,6 +47,10 @@
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>Lịch sử & Thống kê</span>
                 </li>
+                <li class="menu-item" data-tab="team-stats">
+                    <i class="fa-solid fa-people-group"></i>
+                    <span>Thống kê theo Tổ</span>
+                </li>
 
             </ul>
 
@@ -452,60 +456,7 @@
                     </div>
                 </div>
 
-                <!-- Aggregate Statistics Grid -->
-                <div class="stats-container" style="margin-top: 1.5rem;">
-                    <!-- Team Reward Statistics -->
-                    <div class="glass-card">
-                        <div class="card-title" style="color: var(--color-accent); display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-circle-up"></i> Thống Kê Khen Thưởng Theo Tổ
-                        </div>
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Tháng</th>
-                                        <th>Tổ / Bộ Phận</th>
-                                        <th style="text-align: center;">Số Nhân Sự</th>
-                                        <th style="text-align: right;">Tổng Điểm</th>
-                                        <th style="text-align: right;">Tổng Tiền</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="team-reward-stats-tbody">
-                                    <!-- Chèn động bằng Javascript -->
-                                </tbody>
-                                <tfoot id="team-reward-stats-tfoot" style="background: hsla(var(--hue-primary), 20%, 15%, 0.55); font-weight: 700; border-top: 2px solid var(--border-color);">
-                                    <!-- Chèn cộng chân trang bằng Javascript -->
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Team Deduction Statistics -->
-                    <div class="glass-card">
-                        <div class="card-title" style="color: var(--color-danger); display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-circle-down"></i> Thống Kê Điểm Trừ Theo Tổ
-                        </div>
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Tháng</th>
-                                        <th>Tổ / Bộ Phận</th>
-                                        <th style="text-align: center;">Số Nhân Sự</th>
-                                        <th style="text-align: right;">Tổng Điểm</th>
-                                        <th style="text-align: right;">Tổng Tiền</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="team-deduction-stats-tbody">
-                                    <!-- Chèn động bằng Javascript -->
-                                </tbody>
-                                <tfoot id="team-deduction-stats-tfoot" style="background: hsla(var(--hue-danger), 20%, 15%, 0.55); font-weight: 700; border-top: 2px solid var(--border-color);">
-                                    <!-- Chèn cộng chân trang bằng Javascript -->
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                <!-- Team stats removed from here, now in team-stats tab -->
 
                 <!-- Employee Statistics (Full Width) -->
                 <div class="glass-card" style="margin-top: 1.5rem;">
@@ -526,6 +477,137 @@
                                 <!-- Chèn động bằng Javascript -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: TEAM STATISTICS VIEW -->
+            <section class="page-view" id="team-stats-view">
+                <!-- Filters & Toggles -->
+                <div class="glass-card" style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div class="card-title" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-people-group" style="color: var(--color-primary);"></i>
+                            Thống Kê Chi Tiết Theo Tổ
+                        </div>
+                        
+                        <!-- Toggle Monthly vs Cumulative -->
+                        <div style="display: flex; gap: 0.5rem; background: var(--bg-input); padding: 4px; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <button class="toggle-tab-btn active" id="btn-toggle-monthly">
+                                Theo Tháng
+                            </button>
+                            <button class="toggle-tab-btn" id="btn-toggle-cumulative">
+                                Lũy Kế
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Tables (Visible by default) -->
+                <div id="monthly-stats-container" class="stats-container" style="margin-top: 0;">
+                    <!-- Team Reward Statistics (Monthly) -->
+                    <div class="glass-card">
+                        <div class="card-title" style="color: var(--color-accent); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-circle-up"></i> Thống Kê Khen Thưởng Theo Tổ (Theo Tháng)
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tháng</th>
+                                        <th>Tổ / Bộ Phận</th>
+                                        <th style="text-align: center;">Số Nhân Sự</th>
+                                        <th style="text-align: right;">Tổng Điểm</th>
+                                        <th style="text-align: right;">Tổng Tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="team-reward-monthly-tbody">
+                                    <!-- Chèn động bằng Javascript -->
+                                </tbody>
+                                <tfoot id="team-reward-monthly-tfoot" style="background: hsla(var(--hue-primary), 20%, 15%, 0.55); font-weight: 700; border-top: 2px solid var(--border-color);">
+                                    <!-- Chèn cộng chân trang bằng Javascript -->
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Team Deduction Statistics (Monthly) -->
+                    <div class="glass-card">
+                        <div class="card-title" style="color: var(--color-danger); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-circle-down"></i> Thống Kê Điểm Trừ Theo Tổ (Theo Tháng)
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tháng</th>
+                                        <th>Tổ / Bộ Phận</th>
+                                        <th style="text-align: center;">Số Nhân Sự</th>
+                                        <th style="text-align: right;">Tổng Điểm</th>
+                                        <th style="text-align: right;">Tổng Tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="team-deduction-monthly-tbody">
+                                    <!-- Chèn động bằng Javascript -->
+                                </tbody>
+                                <tfoot id="team-deduction-monthly-tfoot" style="background: hsla(var(--hue-danger), 20%, 15%, 0.55); font-weight: 700; border-top: 2px solid var(--border-color);">
+                                    <!-- Chèn cộng chân trang bằng Javascript -->
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cumulative Tables (Hidden by default) -->
+                <div id="cumulative-stats-container" class="stats-container" style="margin-top: 0; display: none;">
+                    <!-- Team Reward Statistics (Cumulative) -->
+                    <div class="glass-card">
+                        <div class="card-title" style="color: var(--color-accent); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-circle-up"></i> Thống Kê Khen Thưởng Theo Tổ (Lũy Kế)
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tổ / Bộ Phận</th>
+                                        <th style="text-align: center;">Số Nhân Sự</th>
+                                        <th style="text-align: right;">Tổng Điểm</th>
+                                        <th style="text-align: right;">Tổng Tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="team-reward-cumulative-tbody">
+                                    <!-- Chèn động bằng Javascript -->
+                                </tbody>
+                                <tfoot id="team-reward-cumulative-tfoot" style="background: hsla(var(--hue-primary), 20%, 15%, 0.55); font-weight: 700; border-top: 2px solid var(--border-color);">
+                                    <!-- Chèn cộng chân trang bằng Javascript -->
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Team Deduction Statistics (Cumulative) -->
+                    <div class="glass-card">
+                        <div class="card-title" style="color: var(--color-danger); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-circle-down"></i> Thống Kê Điểm Trừ Theo Tổ (Lũy Kế)
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tổ / Bộ Phận</th>
+                                        <th style="text-align: center;">Số Nhân Sự</th>
+                                        <th style="text-align: right;">Tổng Điểm</th>
+                                        <th style="text-align: right;">Tổng Tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="team-deduction-cumulative-tbody">
+                                    <!-- Chèn động bằng Javascript -->
+                                </tbody>
+                                <tfoot id="team-deduction-cumulative-tfoot" style="background: hsla(var(--hue-danger), 20%, 15%, 0.55); font-weight: 700; border-top: 2px solid var(--border-color);">
+                                    <!-- Chèn cộng chân trang bằng Javascript -->
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </section>
