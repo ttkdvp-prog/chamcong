@@ -283,17 +283,15 @@ function calculateTotalWorkdays(row, colIdx) {
     var val = String(row[colIdx[String(d)]] || "").trim().toUpperCase();
     if (!val) continue;
     
-    // Quy đổi hệ số công
-    if (val === "X" || val === "X2" || val === "X3" || val === "X4" || val === "TC" || val === "NB" || val === "RN" || val === "C" || val === "LE" || val === "F" || val === "H" || val === "CĐ" || val === "CT" || val === "TS" || val === "R" || val === "T" || val === "Đ") {
+    // Quy đổi hệ số công thực tế
+    if (val === "X" || val === "X2" || val === "X3" || val === "X4" || val === "TC" || val === "RN") {
       sum += 1.0;
     } else if (val === "X/F" || val === "F/X" || val === "X/P" || val === "H1") {
       sum += 0.5;
     } else if (val === "V") {
       sum += 0.25; // vắng mặt tính 2h làm việc = 2/8 = 0.25 công
-    } else if (val.indexOf("/") !== -1) {
-      // Các ca kết hợp: X1/H1, H1/X1... tính 1.0 công
-      sum += 1.0;
     }
+    // Các ký hiệu F (Phép), NB (Nghỉ bù), O (Ốm), Ro (Không lương)... không được tính vào tổng ngày công thực tế (cộng thêm 0.0)
   }
   return sum;
 }

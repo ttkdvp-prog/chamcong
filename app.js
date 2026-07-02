@@ -34,21 +34,24 @@ const DEFAULT_EMPLOYEES = [
   { id: "VNPT018130", name: "Nguyễn Văn Đài", department: "Tổ Hạ tầng Phúc Yên" }
 ];
 
-// Từ điển quy đổi ngày công (Hệ số công tương ứng với mỗi Ký hiệu của VNPT Phú Thọ)
 const SYMBOL_COEFFICIENTS = {
-  // Đi làm đầy đủ / phép lễ hưởng lương -> 1.0 công
-  "X": 1.0, "X2": 1.0, "X3": 1.0, "X4": 1.0, "TC": 1.0, "NB": 1.0, "RN": 1.0,
-  "C": 1.0, "LE": 1.0, "F": 1.0, "H": 1.0, "CĐ": 1.0, "CT": 1.0, "TS": 1.0,
-  "R": 1.0, "T": 1.0, "Đ": 1.0,
+  // Đi làm thực tế -> 1.0 công
+  "X": 1.0, 
   
-  // Ca làm nửa ngày / đi học nửa ca -> 0.5 công
+  // Các ký hiệu nghỉ phép/nghỉ bù/ốm/việc riêng không tính vào ngày công thực tế -> 0.0 công
+  "F": 0.0,
+  "NB": 0.0,
+  "RO": 0.0,
+  "O": 0.0,
+  "": 0.0,
+  
+  // Hỗ trợ tương thích ngược cho dữ liệu cũ (nếu có)
+  "X2": 1.0, "X3": 1.0, "X4": 1.0, "TC": 1.0, "RN": 1.0,
   "X/F": 0.5, "F/X": 0.5, "X/P": 0.5, "H1": 0.5,
-  
-  // Vắng có phép tính 2h làm việc -> 0.25 công
   "V": 0.25,
   
-  // Vắng không lương / ốm đau -> 0.0 công
-  "RO": 0.0, "RV": 0.0, "O": 0.0, "CO": 0.0, "": 0.0
+  "C": 0.0, "LE": 0.0, "H": 0.0, "CĐ": 0.0, "CT": 0.0, "TS": 0.0,
+  "R": 0.0, "T": 0.0, "Đ": 0.0
 };
 
 // Hàm phụ trợ tính tổng công từ mảng 31 ngày dựa theo Ký hiệu
