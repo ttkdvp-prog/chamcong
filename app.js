@@ -180,6 +180,7 @@ function initTabRouting() {
       if (tabId === "dashboard") {
         updateDashboardKPIs();
         updateCharts();
+        renderDashboardSummaryTable();
       } else if (tabId === "attendance") {
         renderGrid();
       }
@@ -282,6 +283,7 @@ async function refreshData() {
     
     setupDeptFilters();
     renderGrid();
+    renderDashboardSummaryTable();
     return;
   }
   
@@ -321,6 +323,7 @@ async function refreshData() {
   
   setupDeptFilters();
   renderGrid();
+  renderDashboardSummaryTable();
 }
 
 function setConnectionStatus(isLive) {
@@ -338,6 +341,7 @@ function setConnectionStatus(isLive) {
 
 function setupDeptFilters() {
   const gridDeptFilter = document.getElementById("grid-dept-filter");
+  const dashDeptFilter = document.getElementById("dashboard-dept-filter");
   const departments = [...new Set(state.employees.map(emp => emp.department))].sort();
   
   gridDeptFilter.innerHTML = '<option value="">Tất cả các tổ</option>';
@@ -347,8 +351,18 @@ function setupDeptFilters() {
     option.textContent = d;
     gridDeptFilter.appendChild(option);
   });
-  
   gridDeptFilter.value = state.selectedDept;
+  
+  if (dashDeptFilter) {
+    dashDeptFilter.innerHTML = '<option value="">Tất cả các tổ</option>';
+    departments.forEach(d => {
+      const option = document.createElement("option");
+      option.value = d;
+      option.textContent = d;
+      dashDeptFilter.appendChild(option);
+    });
+    dashDeptFilter.value = state.selectedDashboardDept || "";
+  }
 }
 
 /* ==========================================================================
@@ -817,6 +831,40 @@ function updateCharts() {
   });
 }
 
+function renderDashboardSummaryTable() {
+  const tbody = document.getElementById("dashboard-summary-body");
+  if (!tbody) return;
+  
+  let filtered = state.records.filter(r => r["Tháng"] === state.selectedMonth);
+  
+  if (state.selectedDashboardDept) {
+    filtered = filtered.filter(r => r["Tổ"] === state.selectedDashboardDept);
+  }
+  
+  filtered.sort((a, b) => a["Tên nhân viên"].localeCompare(b["Tên nhân viên"], "vi"));
+  
+  tbody.innerHTML = "";
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--color-text-muted); padding: 30px;">Không có dữ liệu nhân sự phù hợp.</td></tr>`;
+    return;
+  }
+  
+  filtered.forEach((r, idx) => {
+    const tr = document.createElement("tr");
+    const totalWorkdays = calculateTotalWorkdayFromDays(r["Ngày"]);
+    
+    tr.innerHTML = `
+      <td style="text-align: center; font-weight: 500;">${idx + 1}</td>
+      <td style="font-family: monospace; font-size: 0.85rem; color: var(--color-text-muted);">${r["Mã nhân viên"]}</td>
+      <td style="font-weight: 600;">${r["Tên nhân viên"]}</td>
+      <td style="color: var(--color-text-muted); font-size: 0.9rem;">${r["Tổ"]}</td>
+      <td style="text-align: center; font-weight: 700; color: var(--color-primary); font-size: 1.05rem;">${totalWorkdays.toFixed(1)}</td>
+    `;
+    
+    tbody.appendChild(tr);
+  });
+}
+
 /* ==========================================================================
    8. TÁC VỤ DÒNG - BẢNG ĐIỀU HƯỚNG SỬA HÀNG LOẠT (BULK ACTIONS)
    ========================================================================== */
@@ -1011,7 +1059,17 @@ function setupEventListeners() {
     state.selectedMonth = e.target.value;
     updateDashboardKPIs();
     updateCharts();
+    renderDashboardSummaryTable();
   };
+  
+  // Thay đổi tổ trên thống kê
+  const dashDeptFilter = document.getElementById("dashboard-dept-filter");
+  if (dashDeptFilter) {
+    dashDeptFilter.onchange = (e) => {
+      state.selectedDashboardDept = e.target.value;
+      renderDashboardSummaryTable();
+    };
+  }
   
   // Lưu API
   document.getElementById("btn-save-config").onclick = handleSaveConfig;

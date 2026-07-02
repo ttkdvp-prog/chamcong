@@ -215,6 +215,35 @@
             </div>
           </div>
         </div>
+
+        <!-- Bảng Tổng Hợp Công Theo Tổ & Nhân Viên -->
+        <div class="glass-panel" style="margin-top: 24px;">
+          <div class="table-actions" style="margin-bottom: 16px;">
+            <div class="chart-title" style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--color-primary);"><i class="fa-solid fa-table-list"></i> Bảng Tổng Hợp Công Theo Tổ & Nhân Viên</div>
+            <div class="filter-group">
+              <select id="dashboard-dept-filter" class="form-control filter-select" style="min-width: 200px;">
+                <option value="">Tất cả các tổ</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="table-container">
+            <table class="glass-table">
+              <thead>
+                <tr>
+                  <th style="width: 70px; text-align: center;">STT</th>
+                  <th style="width: 140px;">Mã Nhân Viên</th>
+                  <th>Họ và Tên</th>
+                  <th>Tổ (Bộ phận)</th>
+                  <th style="width: 160px; text-align: center;">Tổng Ngày Công</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-summary-body">
+                <!-- Dữ liệu được nạp động từ JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <!-- TAB 3: API CONFIGURATION -->
