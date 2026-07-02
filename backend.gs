@@ -112,46 +112,8 @@ function doGet(e) {
       }
     }
     
-    // Nếu chọn tháng mới hoàn toàn chưa có sheet tab riêng biệt:
-    // Ta tự động tạo một tab sheet mới cho tháng này và sao chép danh sách từ danh bạ sang.
-    if (activeSheetName !== targetMonth && e && e.parameter && e.parameter.month) {
-      var newSheet = doc.insertSheet(targetMonth);
-      var newHeaders = ["STT", "mã nhân vien", "Họ tên", "tổ"];
-      for (var d = 1; d <= 31; d++) {
-        newHeaders.push(String(d));
-      }
-      newHeaders.push("Tổng công");
-      newHeaders.push("Thời điểm");
-      newSheet.appendRow(newHeaders);
-      
-      // Điền danh sách nhân viên từ danh bạ sang sheet mới
-      for (var empIdx = 0; empIdx < employees.length; empIdx++) {
-        var emp = employees[empIdx];
-        var newRow = [
-          empIdx + 1,
-          emp.id,
-          emp.name,
-          emp.department
-        ];
-        // Điền 31 cột ngày trống
-        for (var d = 1; d <= 31; d++) {
-          newRow.push("");
-        }
-        newRow.push(0.0); // Tổng công
-        newRow.push(new Date()); // Thời điểm
-        newSheet.appendRow(newRow);
-      }
-      
-      // Đọc lại dữ liệu từ sheet mới tạo để trả về
-      var newData = newSheet.getDataRange().getValues();
-      var newHeadersRead = newData[0];
-      var newColIdx = getColumnIndexes(newHeadersRead);
-      monthRecords = [];
-      for (var i = 1; i < newData.length; i++) {
-        monthRecords.push(parseRowToRecord(newData[i], targetMonth, newHeadersRead, newColIdx));
-      }
-      activeSheetName = targetMonth;
-    }
+    // Không tự động tạo sheet mới để tránh làm mất dữ liệu của tab mặc định 'chamcong'.
+    // Người dùng chỉ cần làm việc trên tab mặc định hoặc tự tạo thêm các tab tháng khác trên Google Sheets.
     
     response = {
       success: true,

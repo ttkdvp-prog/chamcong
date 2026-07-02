@@ -70,9 +70,12 @@ function calculateTotalWorkdayFromDays(daysArray) {
 }
 
 // Sinh ngẫu nhiên dữ liệu chấm công tháng mẫu dạng lưới cho 26 nhân sự thực tế
-function generateDefaultGridRecords() {
+function generateDefaultGridRecords(targetMonth) {
   const records = [];
-  const curMonth = "2026-07";
+  const curMonth = targetMonth || state.selectedMonth || "2026-07";
+  const parts = curMonth.split("-");
+  const year = Number(parts[0]);
+  const monthIdx = Number(parts[1]) - 1;
   
   DEFAULT_EMPLOYEES.forEach(emp => {
     const days = [];
@@ -81,16 +84,16 @@ function generateDefaultGridRecords() {
     for (let d = 1; d <= 31; d++) {
       let val = "";
       
-      // Thứ 7, Chủ Nhật thường nghỉ (để trống hoặc ghi NB nếu trực)
-      const dayOfWeek = new Date(2026, 6, d).getDay(); // 0: Chủ Nhật, 6: Thứ 7
+      const dayOfWeek = new Date(year, monthIdx, d).getDay(); // 0: Chủ Nhật, 6: Thứ 7
       if (dayOfWeek === 0 || dayOfWeek === 6) {
-        val = ""; // Trống cuối tuần
+        val = ""; 
       } else {
         const rand = Math.random();
-        if (rand > 0.95) val = "V";       // Vắng tính 2h (0.25 công)
-        else if (rand > 0.9) val = "X/F"; // Phép nửa ngày (0.5 công)
-        else if (rand > 0.88) val = "O";  // Ốm (0 công)
-        else val = "X";                   // Đi làm (1.0 công)
+        if (rand > 0.95) val = "Ro";
+        else if (rand > 0.9) val = "F";
+        else if (rand > 0.88) val = "NB";
+        else if (rand > 0.85) val = "O";
+        else val = "X";
       }
       days.push(val);
     }
@@ -269,8 +272,13 @@ async function refreshData() {
         r["Tổng công"] = calculateTotalWorkdayFromDays(r["Ngày"]);
         return r;
       });
-    } else {
-      state.records = generateDefaultGridRecords();
+    }
+    
+    // Đảm bảo luôn sinh dữ liệu mẫu cho tháng hiện tại nếu chưa tồn tại
+    const hasRecordsForMonth = state.records.some(r => r["Tháng"] === state.selectedMonth);
+    if (!hasRecordsForMonth) {
+      const newRecords = generateDefaultGridRecords(state.selectedMonth);
+      state.records = [...state.records.filter(r => r["Tháng"] !== state.selectedMonth), ...newRecords];
       saveLocalRecords();
     }
     
