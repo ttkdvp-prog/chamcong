@@ -329,7 +329,17 @@ async function refreshData() {
     showToast("Không thể kết nối Google Sheets. Đang dùng dữ liệu cục bộ.", "error");
     
     const cachedRecords = localStorage.getItem("vnpt_cached_grid_records");
-    if (cachedRecords) state.records = JSON.parse(cachedRecords);
+    if (cachedRecords) {
+      state.records = JSON.parse(cachedRecords);
+    }
+    
+    // Đảm bảo luôn sinh dữ liệu mẫu cho tháng hiện tại nếu cache trống để tránh màn hình trống
+    const hasRecordsForMonth = state.records.some(r => r["Tháng"] === state.selectedMonth);
+    if (!hasRecordsForMonth) {
+      const newRecords = generateDefaultGridRecords(state.selectedMonth);
+      state.records = [...state.records.filter(r => r["Tháng"] !== state.selectedMonth), ...newRecords];
+      saveLocalRecords();
+    }
   }
   
   setupDeptFilters();
