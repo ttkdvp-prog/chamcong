@@ -440,17 +440,28 @@ function renderGrid() {
       let cellClass = "cell-empty";
       const uVal = val.toUpperCase();
       
-      if (uVal === "X" || uVal === "X2" || uVal === "X3" || uVal === "X4" || uVal === "TC" || uVal === "NB" || uVal === "RN") {
+      if (uVal === "X") {
         cellClass = "cell-x";
-      } else if (uVal === "X/F" || uVal === "F/X" || uVal === "X/P" || uVal === "H1") {
-        cellClass = "cell-half";
-      } else if (uVal === "V") {
-        cellClass = "cell-v";
+      } else if (uVal === "RO" || uVal === "O") {
+        cellClass = "cell-ro";
+      } else if (uVal === "F") {
+        cellClass = "cell-f";
+      } else if (uVal === "NB") {
+        cellClass = "cell-nb";
       } else if (uVal === "") {
+        cellClass = "cell-empty";
         emptyCellsCount++;
       } else {
-        // Các ký hiệu khác (Le, F, H, CĐ, CT, TS, R, T, Đ...)
-        cellClass = "cell-x"; // Hiển thị màu xanh lá nhẹ để thể hiện ngày công hưởng lương
+        // Hỗ trợ hiển thị màu các ký hiệu cũ nếu có trong sheet
+        if (uVal === "X2" || uVal === "X3" || uVal === "X4" || uVal === "TC" || uVal === "RN") {
+          cellClass = "cell-x";
+        } else if (uVal === "X/F" || uVal === "F/X" || uVal === "X/P" || uVal === "H1") {
+          cellClass = "cell-half";
+        } else if (uVal === "V") {
+          cellClass = "cell-v";
+        } else {
+          cellClass = "cell-x";
+        }
       }
       
       rowHtml += `
@@ -493,9 +504,12 @@ function handleCellDblClick(event, empId, dayNum) {
   let newVal = "";
   
   if (currentVal === "") newVal = "X";
-  else if (currentVal === "X") newVal = "X/2";
-  else if (currentVal === "X/2") newVal = "V";
-  else if (currentVal === "V") newVal = "";
+  else if (currentVal === "X") newVal = "Ro";
+  else if (currentVal === "RO") newVal = "F";
+  else if (currentVal === "F") newVal = "NB";
+  else if (currentVal === "NB") newVal = "O";
+  else if (currentVal === "O") newVal = "";
+  else newVal = "X";
   
   updateCellState(empId, dayNum, newVal, cell);
 }
@@ -544,16 +558,27 @@ async function updateCellState(empId, dayNum, value, cellElement) {
   cellElement.className = "day-cell"; // Reset
   
   const uVal = value.toUpperCase();
-  if (uVal === "X" || uVal === "X2" || uVal === "X3" || uVal === "X4" || uVal === "TC" || uVal === "NB" || uVal === "RN") {
+  if (uVal === "X") {
     cellElement.classList.add("cell-x");
-  } else if (uVal === "X/F" || uVal === "F/X" || uVal === "X/P" || uVal === "H1") {
-    cellElement.classList.add("cell-half");
-  } else if (uVal === "V") {
-    cellElement.classList.add("cell-v");
+  } else if (uVal === "RO" || uVal === "O") {
+    cellElement.classList.add("cell-ro");
+  } else if (uVal === "F") {
+    cellElement.classList.add("cell-f");
+  } else if (uVal === "NB") {
+    cellElement.classList.add("cell-nb");
   } else if (uVal === "") {
     cellElement.classList.add("cell-empty");
   } else {
-    cellElement.classList.add("cell-x");
+    // Để tương thích ngược với dữ liệu cũ
+    if (uVal === "X2" || uVal === "X3" || uVal === "X4" || uVal === "TC" || uVal === "RN") {
+      cellElement.classList.add("cell-x");
+    } else if (uVal === "X/F" || uVal === "F/X" || uVal === "X/P" || uVal === "H1") {
+      cellElement.classList.add("cell-half");
+    } else if (uVal === "V") {
+      cellElement.classList.add("cell-v");
+    } else {
+      cellElement.classList.add("cell-x");
+    }
   }
   
   const totalEl = document.getElementById(`total-val-${empId}`);
@@ -1006,10 +1031,7 @@ function setupEventListeners() {
       const { empId, dayNum, cellElement } = state.activeCell;
       if (!empId || !dayNum || !cellElement) return;
       
-      let val = "";
-      if (btn.classList.contains("btn-x")) val = "X";
-      else if (btn.classList.contains("btn-half")) val = "X/2";
-      else if (btn.classList.contains("btn-v")) val = "V";
+      const val = btn.getAttribute("data-val") || "";
       
       updateCellState(empId, dayNum, val, cellElement);
       hidePopover();

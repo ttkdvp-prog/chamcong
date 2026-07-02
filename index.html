@@ -133,12 +133,13 @@
           <div style="margin-top: 18px; display: flex; gap: 24px; font-size: 0.8rem; color: var(--color-text-muted); flex-wrap: wrap;">
             <span><b>Hướng dẫn chấm nhanh:</b> Click đơn vào ô ngày để mở bảng chọn nhanh. Hoặc click đúp (Double-click) để xoay vòng ký hiệu.</span>
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-              <span>Ký hiệu quy đổi:</span>
-              <span><span class="badge badge-success" style="padding: 2px 6px;">X</span> Đi làm (1.0)</span>
-              <span><span class="badge badge-warning" style="padding: 2px 6px;">X/2</span> Nửa ca (0.5)</span>
-              <span><span class="badge badge-danger" style="padding: 2px 6px;">V</span> Vắng tính 2h (0.25)</span>
-              <span><span class="badge badge-info" style="padding: 2px 6px;">F/Le</span> Phép/Lễ (1.0)</span>
-              <span><span style="border: 1px dashed #777; padding: 2px 6px; border-radius: 4px; color: var(--color-text-muted);">Ro/O</span> Không lương/Ốm (0.0)</span>
+              <span>Ký hiệu chấm công:</span>
+              <span><span class="badge badge-success" style="padding: 2px 6px; background: rgba(0, 196, 140, 0.2); color: var(--color-success); border: 1px solid var(--color-success);">X</span> Đi làm (1.0)</span>
+              <span><span class="badge badge-danger" style="padding: 2px 6px; background: rgba(244, 63, 94, 0.2); color: var(--color-danger); border: 1px solid var(--color-danger);">Ro</span> Việc riêng không lương (0.0)</span>
+              <span><span class="badge badge-info" style="padding: 2px 6px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #3b82f6;">F</span> Phép năm (1.0)</span>
+              <span><span class="badge badge-purple" style="padding: 2px 6px; background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid #a855f7;">NB</span> Nghỉ bù (1.0)</span>
+              <span><span class="badge badge-warning" style="padding: 2px 6px; background: rgba(249, 115, 22, 0.2); color: #f97316; border: 1px solid #f97316;">O</span> Ốm (0.0)</span>
+              <span><span style="border: 1px dashed #777; padding: 2px 6px; border-radius: 4px; color: var(--color-text-muted);">Trống</span> Chưa chấm</span>
             </div>
           </div>
           
@@ -267,10 +268,12 @@
 
   <!-- CELL EDIT POPUP PICKER (Quick floating menu) -->
   <div id="cell-popover" class="cell-popover" style="display: none;">
-    <button class="popover-btn btn-x" title="Đi làm (1.0 công)">X</button>
-    <button class="popover-btn btn-half" title="Nửa ngày (0.5 công)">X/2</button>
-    <button class="popover-btn btn-v" title="Vắng tính 2h (0.25 công)">V</button>
-    <button class="popover-btn btn-clear" title="Xóa ký hiệu"><i class="fa-solid fa-trash-can"></i></button>
+    <button class="popover-btn btn-x" data-val="X" title="Đi làm (1.0 công)">X</button>
+    <button class="popover-btn btn-ro" data-val="Ro" title="Việc riêng không lương (0.0 công)">Ro</button>
+    <button class="popover-btn btn-f" data-val="F" title="Phép năm (1.0 công)">F</button>
+    <button class="popover-btn btn-nb" data-val="NB" title="Nghỉ bù (1.0 công)">NB</button>
+    <button class="popover-btn btn-o" data-val="O" title="Ốm (0.0 công)">O</button>
+    <button class="popover-btn btn-clear" data-val="" title="Xóa ký hiệu"><i class="fa-solid fa-trash-can"></i></button>
   </div>
 
   <!-- ROW EDIT MODAL DIALOG (Optional bulk editor) -->

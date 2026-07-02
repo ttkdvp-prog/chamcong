@@ -658,20 +658,25 @@ select.form-control option {
   transform: scale(1.05);
 }
 
-/* Cell Values Styles (X, X/2, V) */
+/* Cell Values Styles (X, Ro, F, NB, O) */
 .day-cell.cell-x {
-  background: rgba(16, 185, 129, 0.15) !important;
+  background: rgba(0, 196, 140, 0.15) !important;
   color: var(--color-success);
 }
 
-.day-cell.cell-half {
-  background: rgba(245, 158, 11, 0.15) !important;
-  color: var(--color-warning);
-}
-
-.day-cell.cell-v {
+.day-cell.cell-ro, .day-cell.cell-o {
   background: rgba(244, 63, 94, 0.15) !important;
   color: var(--color-danger);
+}
+
+.day-cell.cell-f {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #60a5fa;
+}
+
+.day-cell.cell-nb {
+  background: rgba(168, 85, 247, 0.15) !important;
+  color: #c084fc;
 }
 
 .day-cell.cell-empty {
@@ -725,14 +730,20 @@ select.form-control option {
   transition: var(--transition-smooth);
 }
 
-.popover-btn.btn-x { background: rgba(16, 185, 129, 0.2); color: var(--color-success); }
+.popover-btn.btn-x { background: rgba(0, 196, 140, 0.2); color: var(--color-success); }
 .popover-btn.btn-x:hover { background: var(--color-success); color: black; }
 
-.popover-btn.btn-half { background: rgba(245, 158, 11, 0.2); color: var(--color-warning); }
-.popover-btn.btn-half:hover { background: var(--color-warning); color: black; }
+.popover-btn.btn-ro { background: rgba(244, 63, 94, 0.2); color: var(--color-danger); }
+.popover-btn.btn-ro:hover { background: var(--color-danger); color: white; }
 
-.popover-btn.btn-v { background: rgba(244, 63, 94, 0.2); color: var(--color-danger); }
-.popover-btn.btn-v:hover { background: var(--color-danger); color: white; }
+.popover-btn.btn-f { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.popover-btn.btn-f:hover { background: #3b82f6; color: white; }
+
+.popover-btn.btn-nb { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+.popover-btn.btn-nb:hover { background: #a855f7; color: white; }
+
+.popover-btn.btn-o { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+.popover-btn.btn-o:hover { background: #f97316; color: white; }
 
 .popover-btn.btn-clear { background: rgba(255, 255, 255, 0.05); color: var(--color-text-muted); }
 .popover-btn.btn-clear:hover { background: rgba(255, 255, 255, 0.15); color: white; }
