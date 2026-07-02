@@ -1,780 +1,321 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VNPT - Hệ Thống Điểm Khuyến Khích & Khen Thưởng</title>
-
-    <!-- Premium Icons & Fonts -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Chart.js for data visualization -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Custom Style System -->
-    <link rel="stylesheet" href="app.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VNPT Phú Thọ - Bảng Lưới Chấm Công Tháng</title>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div class="app-container">
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar" id="sidebar">
-            <div class="brand" style="margin-bottom: 2rem;">
-                <div class="brand-logo">V</div>
-                <div class="brand-name" style="background: none; -webkit-text-fill-color: initial; display: flex; flex-direction: column; gap: 2px;">
-                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2;">Trung tâm Hạ tầng</span>
-                    <span style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); line-height: 1.2;">VNPT Phú Thọ</span>
-                    <span style="font-size: 0.85rem; font-weight: 800; color: var(--color-accent); letter-spacing: 1.5px; text-transform: uppercase; line-height: 1.2;">ĐIỂM THƯỞNG</span>
-                </div>
-            </div>
+  <div class="app-container">
+    
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+      <div class="mobile-brand">
+        <span class="mobile-brand-title">TT Hạ tầng - VNPT Phú Thọ</span>
+        <span class="mobile-brand-accent">BẢNG CHẤM CÔNG THÁNG</span>
+      </div>
+      <button id="menu-toggle" class="menu-toggle">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </header>
 
-            <ul class="menu-list">
-                <li class="menu-item active" data-tab="dashboard">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    <span>Tổng quan</span>
-                </li>
-                <li class="menu-item" data-tab="reward">
-                    <i class="fa-solid fa-circle-plus"></i>
-                    <span>Khen thưởng mới</span>
-                </li>
-                <li class="menu-item" data-tab="deduct">
-                    <i class="fa-solid fa-circle-minus"></i>
-                    <span>Điểm trừ mới</span>
-                </li>
-                <li class="menu-item" data-tab="history">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                    <span>Lịch sử & Thống kê</span>
-                </li>
-                <li class="menu-item" data-tab="team-stats">
-                    <i class="fa-solid fa-people-group"></i>
-                    <span>Thống kê theo Tổ</span>
-                </li>
-
-            </ul>
-
-            <div class="sidebar-footer" style="display: flex; flex-direction: column; gap: 8px;">
-                <button class="theme-toggle-btn" id="theme-toggle" style="width: 100%;">
-                    <i class="fas fa-sun"></i>
-                    <span>Giao diện Sáng</span>
-                </button>
-                <button class="theme-toggle-btn" id="btn-open-settings" style="width: 100%; display: none;">
-                    <i class="fa-solid fa-lock"></i>
-                    <span>Khóa Chốt Tháng</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- MOBILE HEADER -->
-        <header class="mobile-header">
-            <button class="menu-toggle" id="menu-toggle">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <div class="brand-name" style="background: none; -webkit-text-fill-color: initial; display: flex; flex-direction: column; line-height: 1.2; margin-bottom: 0;">
-                <span style="font-size: 0.65rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">TT Hạ tầng - VNPT Phú Thọ</span>
-                <span style="font-size: 0.8rem; font-weight: 800; color: var(--color-accent); letter-spacing: 1px; text-transform: uppercase;">ĐIỂM THƯỞNG</span>
-            </div>
-            <div class="api-status-badge" style="padding: 4px 10px; font-size: 0.7rem;">
-                <div class="status-dot" id="status-dot-mobile"></div>
-            </div>
-        </header>
-
-        <!-- MAIN CONTENT AREA -->
-        <main class="main-content">
-
-            <!-- TOP BAR STATUS -->
-            <div class="top-bar">
-                <div class="page-title">
-                    <h1>Hệ thống Quản lý Khen thưởng</h1>
-                    <p>Theo dõi điểm khuyến khích & tính tiền thưởng nhân viên</p>
-                </div>
-                <div class="api-status-badge">
-                    <div class="status-dot" id="status-dot"></div>
-                    <span id="status-text">Đang kiểm tra kết nối...</span>
-                </div>
-            </div>
-
-            <!-- TAB 1: DASHBOARD VIEW -->
-            <section class="page-view active" id="dashboard-view">
-                <!-- Overview Header & Month Filter -->
-                <div class="glass-card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                        <div class="card-title" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-chart-pie" style="color: var(--color-primary);"></i>
-                            Chỉ Số Tổng Quan Hệ Thống
-                        </div>
-                        <div style="min-width: 200px;">
-                            <select id="dashboard-filter-month" class="form-control filter-select" style="padding-left: 14px; width: 100%; min-height: 42px;">
-                                <option value="all">Tất cả các tháng</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- METRIC CARDS -->
-                <div class="metrics-grid">
-                    <!-- Tổng Điểm Cộng -->
-                    <div class="metric-card">
-                        <div class="metric-header">
-                            <span>TỔNG ĐIỂM CỘNG KHEN THƯỞNG</span>
-                            <i class="fa-solid fa-circle-up metric-icon" style="color: var(--color-primary);"></i>
-                        </div>
-                        <div class="metric-value" id="kpi-positive-points" style="color: var(--color-primary);">0</div>
-                        <div class="metric-subtitle">Điểm thưởng khen tặng tích lũy</div>
-                    </div>
-
-                    <!-- Tổng Điểm Trừ -->
-                    <div class="metric-card danger">
-                        <div class="metric-header">
-                            <span>TỔNG ĐIỂM TRỪ GIẢM TRỪ</span>
-                            <i class="fa-solid fa-circle-down metric-icon"></i>
-                        </div>
-                        <div class="metric-value" id="kpi-negative-points" style="color: var(--color-danger);">0</div>
-                        <div class="metric-subtitle">Điểm giảm trừ tích lũy</div>
-                    </div>
-
-                    <!-- Thực chi tiền thưởng -->
-                    <div class="metric-card accent">
-                        <div class="metric-header">
-                            <span>THỰC CHI TIỀN THƯỞNG</span>
-                            <i class="fa-solid fa-wallet metric-icon"></i>
-                        </div>
-                        <div class="metric-value" id="kpi-total-money">0 đ</div>
-                        <div class="metric-subtitle">Ngân sách thực chi (5K/Điểm)</div>
-                    </div>
-
-                    <!-- Tổng tiền giảm trừ -->
-                    <div class="metric-card danger">
-                        <div class="metric-header">
-                            <span>TỔNG TIỀN GIẢM TRỪ</span>
-                            <i class="fa-solid fa-file-invoice-dollar metric-icon"></i>
-                        </div>
-                        <div class="metric-value" id="kpi-total-deduct-money" style="color: var(--color-danger);">0 đ</div>
-                        <div class="metric-subtitle">Ngân sách giảm trừ (-5K/Điểm)</div>
-                    </div>
-
-                    <!-- Nhân sự được khen thưởng -->
-                    <div class="metric-card">
-                        <div class="metric-header">
-                            <span>NHÂN SỰ ĐƯỢC KHEN THƯỞNG</span>
-                            <i class="fa-solid fa-user-check metric-icon" style="color: var(--color-primary);"></i>
-                        </div>
-                        <div class="metric-value" id="kpi-rewarded-employees" style="color: var(--color-primary);">0
-                        </div>
-                        <div class="metric-subtitle">Nhận điểm cộng tích lũy</div>
-                    </div>
-
-                    <!-- Nhân sự bị giảm trừ -->
-                    <div class="metric-card danger">
-                        <div class="metric-header">
-                            <span>NHÂN SỰ BỊ GIẢM TRỪ</span>
-                            <i class="fa-solid fa-user-xmark metric-icon" style="color: var(--color-danger);"></i>
-                        </div>
-                        <div class="metric-value" id="kpi-penalized-employees" style="color: var(--color-danger);">0
-                        </div>
-                        <div class="metric-subtitle">Bị trừ điểm tích lũy</div>
-                    </div>
-                </div>
-
-                <!-- CHARTS LAYOUT -->
-                <div class="dashboard-layout">
-                    <!-- Team Points Bar Chart -->
-                    <div class="glass-card">
-                        <div class="card-title">Phân tích Điểm Khuyến khích theo Tổ</div>
-                        <div style="height: 300px; position: relative;">
-                            <canvas id="teamChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Top Employees Doughnut Chart -->
-                    <div class="glass-card">
-                        <div class="card-title">Top 5 Nhân viên Xuất sắc</div>
-                        <div style="height: 300px; position: relative;">
-                            <canvas id="employeeChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 2: REWARD FORM VIEW -->
-            <section class="page-view" id="reward-view">
-                <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
-                    <div class="card-title">
-                        <span><i class="fa-solid fa-plus" style="color: var(--color-accent); margin-right: 8px;"></i>Ghi
-                            Nhận Điểm Khuyến Khích Mới</span>
-                    </div>
-
-                    <form class="reward-form" id="reward-points-form">
-                        <div class="form-row">
-                            <!-- Lọc theo Tổ -->
-                            <div class="form-group">
-                                <label for="reward-team-filter-select">Lọc Theo Tổ / Bộ Phận</label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-filter"></i>
-                                    <select id="reward-team-filter-select" class="form-control">
-                                        <option value="all">-- Tất cả các Tổ --</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Chọn nhân viên từ danh bạ -->
-                            <div class="form-group">
-                                <label for="reward-employee-select">Chọn Nhân Viên <span
-                                        style="color: var(--color-danger)">*</span></label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-user-tie"></i>
-                                    <select id="reward-employee-select" class="form-control" required>
-                                        <option value="">-- Chọn nhân viên từ danh bạ --</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
-                            <!-- Mã nhân viên -->
-                            <div class="form-group">
-                                <label for="reward-id">Mã Nhân Viên</label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-id-card" style="opacity: 0.7;"></i>
-                                    <input type="text" id="reward-id" class="form-control" placeholder="Tự động điền..."
-                                        readonly>
-                                </div>
-                            </div>
-
-                            <!-- Tên nhân viên -->
-                            <div class="form-group">
-                                <label for="reward-name">Tên Nhân Viên</label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-user" style="opacity: 0.7;"></i>
-                                    <input type="text" id="reward-name" class="form-control"
-                                        placeholder="Tự động điền..." readonly>
-                                </div>
-                            </div>
-
-                            <!-- Tổ/Bộ phận -->
-                            <div class="form-group">
-                                <label for="reward-team">Tổ / Bộ Phận</label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-sitemap" style="opacity: 0.7;"></i>
-                                    <input type="text" id="reward-team" class="form-control"
-                                        placeholder="Tự động điền..." readonly>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <!-- Tháng thưởng -->
-                            <div class="form-group">
-                                <label for="reward-month">Tháng Thưởng (Định dạng: TTrrrr) <span
-                                        style="color: var(--color-danger)">*</span></label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-calendar-days"></i>
-                                    <input type="text" id="reward-month" class="form-control"
-                                        placeholder="Ví dụ: 52026 (tháng 5/2026)" inputmode="numeric" pattern="[0-9]*" required>
-                                </div>
-                            </div>
-
-                            <!-- Điểm khuyến khích -->
-                            <div class="form-group">
-                                <label for="reward-points">Số Điểm Thưởng Khuyến Khích <span
-                                        style="color: var(--color-danger)">*</span></label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-star"></i>
-                                    <input type="number" id="reward-points" class="form-control"
-                                        placeholder="Nhập số điểm (ví dụ: 100)" min="1" required>
-                                </div>
-                                <div class="money-preview">
-                                    <span>Thành tiền quy đổi (1 điểm = 5.000đ):</span>
-                                    <span id="money-amount-preview" style="font-size: 1.25rem;">0 đ</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Lý do khen thưởng -->
-                        <div class="form-group">
-                            <label for="reward-reason">Lý Do / Nội Dung Công Việc Hoàn Thành <span
-                                    style="color: var(--color-danger)">*</span></label>
-                            <textarea id="reward-reason" class="form-control" rows="4"
-                                placeholder="Nhập lý do chi tiết, thời gian và địa điểm thực hiện..."
-                                style="padding-left: 14px;" required></textarea>
-                        </div>
-
-                        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
-                            <button type="reset" class="btn btn-secondary">Nhập Lại</button>
-                            <button type="submit" class="btn btn-primary" id="submit-reward-btn">Lưu Điểm Khuyến
-                                khích</button>
-                        </div>
-                    </form>
-                </div>
-            </section>
-
-            <!-- TAB 2.5: DEDUCT FORM VIEW -->
-            <section class="page-view" id="deduct-view">
-                <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
-                    <div class="card-title">
-                        <span><i class="fa-solid fa-circle-minus"
-                                style="color: var(--color-danger); margin-right: 8px;"></i>Ghi Nhận Điểm Trừ Mới</span>
-                    </div>
-
-                    <form class="reward-form" id="deduct-points-form">
-                        <div class="form-row">
-                            <!-- Lọc theo Tổ -->
-                            <div class="form-group">
-                                <label for="deduct-team-filter-select">Lọc Theo Tổ / Bộ Phận</label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-filter"></i>
-                                    <select id="deduct-team-filter-select" class="form-control">
-                                        <option value="all">-- Tất cả các Tổ --</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Chọn nhân viên từ danh bạ -->
-                            <div class="form-group">
-                                <label for="deduct-employee-select">Chọn Nhân Viên <span
-                                        style="color: var(--color-danger)">*</span></label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-user-tie"></i>
-                                    <select id="deduct-employee-select" class="form-control" required>
-                                        <option value="">-- Chọn nhân viên từ danh bạ --</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
-                            <!-- Mã nhân viên -->
-                            <div class="form-group">
-                                <label for="deduct-id">Mã Nhân Viên</label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-id-card" style="opacity: 0.7;"></i>
-                                    <input type="text" id="deduct-id" class="form-control" placeholder="Tự động điền..."
-                                        readonly>
-                                </div>
-                            </div>
-
-                            <!-- Tên nhân viên -->
-                            <div class="form-group">
-                                <label for="deduct-name">Tên Nhân Viên</label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-user" style="opacity: 0.7;"></i>
-                                    <input type="text" id="deduct-name" class="form-control"
-                                        placeholder="Tự động điền..." readonly>
-                                </div>
-                            </div>
-
-                            <!-- Tổ/Bộ phận -->
-                            <div class="form-group">
-                                <label for="deduct-team">Tổ / Bộ Phận</label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-sitemap" style="opacity: 0.7;"></i>
-                                    <input type="text" id="deduct-team" class="form-control"
-                                        placeholder="Tự động điền..." readonly>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <!-- Tháng thưởng -->
-                            <div class="form-group">
-                                <label for="deduct-month">Tháng giảm trừ (Định dạng: TTrrrr) <span
-                                        style="color: var(--color-danger)">*</span></label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-calendar-days"></i>
-                                    <input type="text" id="deduct-month" class="form-control"
-                                        placeholder="Ví dụ: 52026 (tháng 5/2026)" inputmode="numeric" pattern="[0-9]*" required>
-                                </div>
-                            </div>
-
-                            <!-- Điểm trừ -->
-                            <div class="form-group">
-                                <label for="deduct-points">Số điểm giảm trừ <span
-                                        style="color: var(--color-danger)">*</span></label>
-                                <div class="input-container">
-                                    <i class="fa-solid fa-star" style="color: var(--color-danger);"></i>
-                                    <input type="number" id="deduct-points" class="form-control"
-                                        placeholder="Nhập số điểm trừ (ví dụ: 50)" min="1" required>
-                                </div>
-                                <div class="money-preview"
-                                    style="background: var(--color-danger-glow); border-color: hsla(355, 75%, 55%, 0.2); color: var(--color-danger); animation: pulse-danger 2s infinite;">
-                                    <span>Thành tiền giảm trừ (1 điểm = -5.000đ):</span>
-                                    <span id="deduct-money-amount-preview" style="font-size: 1.25rem;">0 đ</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Lý do khấu trừ -->
-                        <div class="form-group">
-                            <label for="deduct-reason">Lý Do / Nội Dung Khấu Trừ Điểm <span
-                                    style="color: var(--color-danger)">*</span></label>
-                            <textarea id="deduct-reason" class="form-control" rows="4"
-                                placeholder="Nhập lý do chi tiết, thời gian và sự kiện dẫn đến việc giảm trừ điểm..."
-                                style="padding-left: 14px;" required></textarea>
-                        </div>
-
-                        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
-                            <button type="reset" class="btn btn-secondary">Nhập Lại</button>
-                            <button type="submit" class="btn btn-primary" id="submit-deduct-btn"
-                                style="background: linear-gradient(135deg, var(--color-danger), #df2c3e); box-shadow: 0 4px 15px var(--color-danger-glow);">Lưu
-                                Điểm Trừ</button>
-                        </div>
-                    </form>
-                </div>
-            </section>
-
-            <!-- TAB 3: HISTORY & STATS VIEW -->
-            <section class="page-view" id="history-view">
-
-                <!-- Advanced Filters -->
-                <div class="glass-card" style="margin-bottom: 1.5rem;">
-                    <div class="card-title">Bộ Lọc & Tìm Kiếm Nâng Cao</div>
-                    <div class="filter-bar">
-                        <!-- Search Name -->
-                        <div class="input-container filter-input">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="search-name" class="form-control"
-                                placeholder="Tìm theo tên nhân viên...">
-                        </div>
-                        <!-- Search ID -->
-                        <div class="input-container filter-input">
-                            <i class="fa-solid fa-barcode"></i>
-                            <input type="text" id="search-id" class="form-control"
-                                placeholder="Tìm theo mã nhân viên...">
-                        </div>
-                        <!-- Search Team -->
-                        <div class="input-container filter-input">
-                            <i class="fa-solid fa-building-user"></i>
-                            <input type="text" id="search-team" class="form-control" placeholder="Tìm theo tổ...">
-                        </div>
-                        <!-- Month filter -->
-                        <select id="filter-month" class="form-control filter-select" style="padding-left: 14px;">
-                            <option value="all">Tất cả các tháng</option>
-                        </select>
-                        <!-- Export Button -->
-                        <button class="btn btn-primary" id="export-csv-btn" style="padding: 10px 20px;">
-                            <i class="fa-solid fa-file-excel"></i> Xuất Báo Cáo
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Complete History Table -->
-                <div class="glass-card">
-                    <div class="card-title">
-                        Danh Sách Chi Tiết Khen Thưởng
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table" id="history-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 60px;">STT</th>
-                                    <th>Kỳ Thưởng</th>
-                                    <th>Mã NV</th>
-                                    <th>Họ Và Tên</th>
-                                    <th>Tổ / Bộ Phận</th>
-                                    <th>Điểm</th>
-                                    <th>Tiền Thưởng</th>
-                                    <th style="width: 30%;">Lý do / Công việc</th>
-                                    <th style="width: 110px; text-align: center;">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-body">
-                                <!-- Chèn động bằng Javascript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Team stats removed from here, now in team-stats tab -->
-
-                <!-- Employee Statistics (Full Width) -->
-                <div class="glass-card" style="margin-top: 1.5rem;">
-                    <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-user-gear" style="color: var(--color-primary);"></i> Thống Kê Tổng Hợp Theo Nhân Viên
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Họ Và Tên</th>
-                                    <th>Tổ / Bộ Phận</th>
-                                    <th style="text-align: right;">Tổng Điểm</th>
-                                    <th style="text-align: right;">Tổng Tiền</th>
-                                </tr>
-                            </thead>
-                            <tbody id="employee-stats-tbody">
-                                <!-- Chèn động bằng Javascript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 4: TEAM STATISTICS VIEW -->
-            <section class="page-view" id="team-stats-view">
-                <!-- Filters & Toggles -->
-                <div class="glass-card" style="margin-bottom: 1.5rem;">
-                    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-                        <!-- Header Row -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                            <div class="card-title" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
-                                <i class="fa-solid fa-people-group" style="color: var(--color-primary);"></i>
-                                Thống Kê Chi Tiết Theo Tổ
-                            </div>
-                            
-                            <!-- Toggle Monthly vs Cumulative -->
-                            <div style="display: flex; gap: 0.5rem; background: var(--bg-input); padding: 4px; border-radius: 8px; border: 1px solid var(--border-color);">
-                                <button class="toggle-tab-btn active" id="btn-toggle-monthly">
-                                    Theo Tháng
-                                </button>
-                                <button class="toggle-tab-btn" id="btn-toggle-cumulative">
-                                    Lũy Kế
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Filter Controls Row -->
-                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                            <!-- Filter Team -->
-                            <div class="input-container filter-input" style="flex: 1; min-width: 200px; margin-bottom: 0;">
-                                <i class="fa-solid fa-building-user"></i>
-                                <input type="text" id="team-stats-filter-team" class="form-control" placeholder="Lọc theo tên tổ...">
-                            </div>
-                            <!-- Filter Month -->
-                            <div style="flex: 1; min-width: 200px;">
-                                <select id="team-stats-filter-month" class="form-control filter-select" style="padding-left: 14px; width: 100%; height: 100%; min-height: 42px;">
-                                    <option value="all">Tất cả các tháng</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Monthly Tables (Visible by default) -->
-                <div id="monthly-stats-container" class="stats-container" style="margin-top: 0;">
-                    <!-- Team Reward Statistics (Monthly) -->
-                    <div class="glass-card">
-                        <div class="card-title" style="color: var(--color-accent); display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-circle-up"></i> Thống Kê Khen Thưởng Theo Tổ (Theo Tháng)
-                        </div>
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Tháng</th>
-                                        <th>Tổ / Bộ Phận</th>
-                                        <th style="text-align: center;">Số Nhân Sự</th>
-                                        <th style="text-align: right;">Tổng Điểm</th>
-                                        <th style="text-align: right;">Tổng Tiền</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="team-reward-monthly-tbody">
-                                    <!-- Chèn động bằng Javascript -->
-                                </tbody>
-                                <tfoot id="team-reward-monthly-tfoot" style="background: hsla(var(--hue-primary), 20%, 15%, 0.55); font-weight: 700; border-top: 2px solid var(--border-color);">
-                                    <!-- Chèn cộng chân trang bằng Javascript -->
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Team Deduction Statistics (Monthly) -->
-                    <div class="glass-card">
-                        <div class="card-title" style="color: var(--color-danger); display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-circle-down"></i> Thống Kê Điểm Trừ Theo Tổ (Theo Tháng)
-                        </div>
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Tháng</th>
-                                        <th>Tổ / Bộ Phận</th>
-                                        <th style="text-align: center;">Số Nhân Sự</th>
-                                        <th style="text-align: right;">Tổng Điểm</th>
-                                        <th style="text-align: right;">Tổng Tiền</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="team-deduction-monthly-tbody">
-                                    <!-- Chèn động bằng Javascript -->
-                                </tbody>
-                                <tfoot id="team-deduction-monthly-tfoot" style="background: hsla(var(--hue-danger), 20%, 15%, 0.55); font-weight: 700; border-top: 2px solid var(--border-color);">
-                                    <!-- Chèn cộng chân trang bằng Javascript -->
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cumulative Tables (Hidden by default) -->
-                <div id="cumulative-stats-container" class="stats-container" style="margin-top: 0; display: none;">
-                    <!-- Team Reward Statistics (Cumulative) -->
-                    <div class="glass-card">
-                        <div class="card-title" style="color: var(--color-accent); display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-circle-up"></i> Thống Kê Khen Thưởng Theo Tổ (Lũy Kế)
-                        </div>
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Tổ / Bộ Phận</th>
-                                        <th style="text-align: center;">Số Nhân Sự</th>
-                                        <th style="text-align: right;">Tổng Điểm</th>
-                                        <th style="text-align: right;">Tổng Tiền</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="team-reward-cumulative-tbody">
-                                    <!-- Chèn động bằng Javascript -->
-                                </tbody>
-                                <tfoot id="team-reward-cumulative-tfoot" style="background: hsla(var(--hue-primary), 20%, 15%, 0.55); font-weight: 700; border-top: 2px solid var(--border-color);">
-                                    <!-- Chèn cộng chân trang bằng Javascript -->
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Team Deduction Statistics (Cumulative) -->
-                    <div class="glass-card">
-                        <div class="card-title" style="color: var(--color-danger); display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-circle-down"></i> Thống Kê Điểm Trừ Theo Tổ (Lũy Kế)
-                        </div>
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Tổ / Bộ Phận</th>
-                                        <th style="text-align: center;">Số Nhân Sự</th>
-                                        <th style="text-align: right;">Tổng Điểm</th>
-                                        <th style="text-align: right;">Tổng Tiền</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="team-deduction-cumulative-tbody">
-                                    <!-- Chèn động bằng Javascript -->
-                                </tbody>
-                                <tfoot id="team-deduction-cumulative-tfoot" style="background: hsla(var(--hue-danger), 20%, 15%, 0.55); font-weight: 700; border-top: 2px solid var(--border-color);">
-                                    <!-- Chèn cộng chân trang bằng Javascript -->
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-
-
-        </main>
-    </div>
-
-    <!-- TOAST NOTIFICATION CONTAINER -->
-    <div id="toast-container" class="toast-container"></div>
-
-    <!-- EDIT RECORD MODAL DIALOG -->
-    <div id="edit-modal" class="modal-overlay">
-        <div class="modal-content glass-card" style="max-width: 600px; width: 90%;">
-            <div class="modal-header">
-                <h2><i class="fa-solid fa-pen-to-square"
-                        style="color: var(--color-primary); margin-right: 8px;"></i>Chỉnh Sửa Bản Ghi</h2>
-                <button type="button" class="modal-close" id="close-modal-btn"><i
-                        class="fa-solid fa-xmark"></i></button>
-            </div>
-            <form id="edit-record-form" class="reward-form"
-                style="padding: 0; background: none; border: none; box-shadow: none; backdrop-filter: none;">
-                <input type="hidden" id="edit-stt">
-
-                <div class="form-row form-row-2col">
-                    <div class="form-group">
-                        <label>Họ Và Tên</label>
-                        <div class="input-container">
-                            <i class="fa-solid fa-user" style="opacity: 0.7;"></i>
-                            <input type="text" id="edit-name" class="form-control" placeholder="Họ tên..." readonly
-                                style="border-style: dashed;">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Mã Nhân Viên</label>
-                        <div class="input-container">
-                            <i class="fa-solid fa-id-card" style="opacity: 0.7;"></i>
-                            <input type="text" id="edit-id" class="form-control" placeholder="Mã NV..." readonly
-                                style="border-style: dashed;">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-row form-row-2col">
-                    <div class="form-group">
-                        <label for="edit-month">Tháng (Định dạng: TTrrrr) <span
-                                style="color: var(--color-danger)">*</span></label>
-                        <div class="input-container">
-                            <i class="fa-solid fa-calendar-days"></i>
-                            <input type="text" id="edit-month" class="form-control" required placeholder="Ví dụ: 52026" inputmode="numeric" pattern="[0-9]*">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-points">Số Điểm (Dương cho Thưởng, Âm cho Phạt) <span
-                                style="color: var(--color-danger)">*</span></label>
-                        <div class="input-container">
-                            <i class="fa-solid fa-star"></i>
-                            <input type="number" id="edit-points" class="form-control" required
-                                placeholder="Nhập số điểm...">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="edit-reason">Lý Do / Nội Dung Công Việc <span
-                            style="color: var(--color-danger)">*</span></label>
-                    <textarea id="edit-reason" class="form-control" rows="3" required
-                        placeholder="Nhập lý do chi tiết..." style="padding-left: 14px;"></textarea>
-                </div>
-
-                <div class="modal-footer"
-                    style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                    <button type="button" class="btn btn-secondary" id="cancel-edit-btn">Hủy Bỏ</button>
-                    <button type="submit" class="btn btn-primary" id="save-edit-btn">Lưu Thay Đổi</button>
-                </div>
-            </form>
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="sidebar">
+      <div class="brand-section">
+        <span class="brand-title-small">Trung tâm Hạ tầng</span>
+        <h2 class="brand-title-main">VNPT Phú Thọ</h2>
+        <span class="brand-title-accent">LƯỚI CHẤM CÔNG</span>
+      </div>
+      
+      <nav class="nav-links">
+        <li class="nav-item">
+          <button class="nav-button active" data-tab="attendance">
+            <i class="fa-solid fa-table-cells"></i>
+            <span>Bảng Chấm Công</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-button" data-tab="dashboard">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Thống Kê KPI</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-button" data-tab="config">
+            <i class="fa-solid fa-gears"></i>
+            <span>Cấu Hình API</span>
+          </button>
+        </li>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div id="connection-status" class="status-badge offline">
+          <span class="status-dot active"></span>
+          <span class="status-text">Chế độ ngoại tuyến</span>
         </div>
-    </div>
+      </div>
+    </aside>
 
-    <!-- SETTINGS AND SECURITY MODAL -->
-    <div id="settings-modal" class="modal-overlay">
-        <div class="modal-content glass-card" style="max-width: 600px; width: 90%;">
-            <div class="modal-header">
-                <h2><i class="fa-solid fa-lock" style="color: var(--color-primary); margin-right: 8px;"></i>Thiết Lập Khóa Chốt Tháng</h2>
-                <button type="button" class="modal-close" id="close-settings-modal-btn"><i class="fa-solid fa-xmark"></i></button>
+    <!-- Main Content Panel -->
+    <main class="main-content">
+      
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <h1 id="page-title" class="page-title">Bảng Chấm Công Tháng</h1>
+        <p class="page-subtitle">Quản lý ngày công nhân viên, soát ô trống và tổng hợp chuyên cần tự động</p>
+      </div>
+
+      <!-- TAB 1: ATTENDANCE GRID VIEW -->
+      <section id="attendance-tab" class="tab-pane active">
+        <div class="glass-panel">
+          
+          <!-- Grid Control Filters -->
+          <div class="table-actions">
+            <div class="filter-group">
+              <select id="grid-month-filter" class="form-control filter-select">
+                <!-- JS will populate monthly options -->
+              </select>
+              <select id="grid-dept-filter" class="form-control filter-select">
+                <option value="">Tất cả các tổ</option>
+              </select>
+              <input type="text" id="grid-search" class="form-control" placeholder="Tìm tên hoặc mã NV..." style="max-width: 200px;">
             </div>
-            <form id="settings-form" class="reward-form" style="padding: 0; background: none; border: none; box-shadow: none; backdrop-filter: none;">
-                
-                <!-- Google Sheets Web App API URL -->
-                <div class="form-group">
-                    <label for="settings-api-url">Đường dẫn API Google Sheets (Web App URL)</label>
-                    <div class="input-container">
-                        <i class="fa-solid fa-link"></i>
-                        <input type="url" id="settings-api-url" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
-                    </div>
-                </div>
+            
+            <div class="filter-group">
+              <!-- Review Mode Toggle Button -->
+              <button id="btn-toggle-review" class="btn btn-warning">
+                <i class="fa-solid fa-circle-exclamation"></i> Soát ô trống
+              </button>
+              
+              <!-- Checkbox option: Show incomplete staff only -->
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; color: var(--color-text-muted);">
+                <input type="checkbox" id="chk-incomplete-only" style="width: 16px; height: 16px; accent-color: var(--color-primary);">
+                Chỉ nhân viên thiếu công
+              </label>
+            </div>
+          </div>
+          
+          <!-- Info Banner for Review Mode -->
+          <div id="review-banner" class="status-preview" style="display: none; margin-bottom: 20px; border-color: var(--color-warning); background: rgba(245, 158, 11, 0.03);">
+            <div class="preview-row" style="align-items: center;">
+              <span class="preview-label" style="color: var(--color-warning); font-weight: 600;">
+                <i class="fa-solid fa-triangle-exclamation"></i> CHẾ ĐỘ SOÁT LỖI ĐANG BẬT:
+              </span>
+              <span id="review-summary-text" class="preview-value" style="color: var(--color-text-main);">
+                Tìm thấy 0 ô trống chưa chấm công ký hiệu. Nhấp đúp vào ô để sửa nhanh hoặc bấm chọn ô để hiển thị bảng menu.
+              </span>
+            </div>
+          </div>
 
-                <!-- Locked Months -->
-                <div class="form-group">
-                    <label for="settings-locked-months">Danh Sách Tháng Bị Khóa (Chốt)</label>
-                    <div class="input-container">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="text" id="settings-locked-months" class="form-control" placeholder="Ví dụ: 52026, 42026">
-                    </div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
-                        Các tháng bị khóa, ngăn chặn chỉnh sửa/thêm mới (Phân tách bằng dấu phẩy. Ví dụ: 52026, 42026).
-                    </div>
-                </div>
-
-                <div class="modal-footer" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                    <button type="button" class="btn btn-secondary" id="cancel-settings-btn">Đóng</button>
-                    <button type="submit" class="btn btn-primary" id="save-settings-btn">Lưu Cấu Hình</button>
-                </div>
-            </form>
+          <!-- The Monthly Grid Table Container -->
+          <div class="table-container">
+            <table id="attendance-grid-table" class="glass-table">
+              <thead>
+                <!-- Dynamically generated via Javascript -->
+              </thead>
+              <tbody id="attendance-grid-body">
+                <!-- Dynamically generated via Javascript -->
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Legend guide for cell symbols -->
+          <div style="margin-top: 18px; display: flex; gap: 24px; font-size: 0.8rem; color: var(--color-text-muted); flex-wrap: wrap;">
+            <span><b>Hướng dẫn chấm nhanh:</b> Click đơn vào ô ngày để mở bảng chọn nhanh. Hoặc click đúp (Double-click) để xoay vòng ký hiệu.</span>
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <span>Ký hiệu quy đổi:</span>
+              <span><span class="badge badge-success" style="padding: 2px 6px;">X</span> Đi làm (1.0)</span>
+              <span><span class="badge badge-warning" style="padding: 2px 6px;">X/2</span> Nửa ca (0.5)</span>
+              <span><span class="badge badge-danger" style="padding: 2px 6px;">V</span> Vắng tính 2h (0.25)</span>
+              <span><span class="badge badge-info" style="padding: 2px 6px;">F/Le</span> Phép/Lễ (1.0)</span>
+              <span><span style="border: 1px dashed #777; padding: 2px 6px; border-radius: 4px; color: var(--color-text-muted);">Ro/O</span> Không lương/Ốm (0.0)</span>
+            </div>
+          </div>
+          
         </div>
-    </div>
+      </section>
 
-    <!-- Core Logic Connection -->
-    <script src="app.js"></script>
+      <!-- TAB 2: DASHBOARD STATS -->
+      <section id="dashboard-tab" class="tab-pane">
+        <!-- Dashboard Month Filter -->
+        <div class="table-actions">
+          <div class="chart-title">Thống kê dữ liệu chuyên cần</div>
+          <div class="filter-group">
+            <select id="dashboard-month-filter" class="form-control filter-select">
+              <!-- JS will populate monthly options -->
+            </select>
+          </div>
+        </div>
+
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon primary">
+              <i class="fa-solid fa-calculator"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Tổng số công tích lũy</span>
+              <span id="kpi-total-workdays" class="kpi-value">0</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon success">
+              <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Tổng lượt ngày công (X)</span>
+              <span id="kpi-x-count" class="kpi-value">0</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon warning">
+              <i class="fa-solid fa-user-clock"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Tổng lượt nửa ngày (X/2)</span>
+              <span id="kpi-half-count" class="kpi-value">0</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon danger">
+              <i class="fa-solid fa-user-xmark"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Số ô trống chưa chấm</span>
+              <span id="kpi-empty-count" class="kpi-value">0 ô</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="glass-panel">
+          <div class="charts-grid">
+            <div>
+              <h3 class="chart-title">Tỷ lệ Phân bổ ký hiệu ngày công</h3>
+              <div class="chart-wrapper">
+                <canvas id="punctualityChart"></canvas>
+              </div>
+            </div>
+            <div>
+              <h3 class="chart-title">Tổng số công tích lũy theo từng Tổ</h3>
+              <div class="chart-wrapper">
+                <canvas id="departmentWorkdaysChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: API CONFIGURATION -->
+      <section id="config-tab" class="tab-pane">
+        <div class="glass-panel">
+          <div class="chart-title">Cấu hình API kết nối Google Sheets</div>
+          
+          <div class="form-group">
+            <label for="api-url-input">Đường dẫn Google Apps Script Web App URL</label>
+            <input type="url" id="api-url-input" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
+            <p class="page-subtitle" style="margin-top: 8px;">
+              Nhập link Web App sau khi bạn đã <b>Triển khai dưới dạng Ứng dụng web</b> trên Google Drive. 
+              Nếu để trống, ứng dụng sẽ chạy ở chế độ Demo (Offline) và tự động lưu dữ liệu tạm thời vào trình duyệt của bạn.
+            </p>
+          </div>
+          
+          <button id="btn-save-config" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình
+          </button>
+        </div>
+
+        <div class="glass-panel">
+          <div class="chart-title">Hướng dẫn thiết lập Google Sheets làm Cơ sở dữ liệu</div>
+          <div class="page-subtitle" style="line-height: 1.6; color: var(--color-text-main);">
+            <ol style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+              <li>Tạo một file Google Sheets mới trên Google Drive của bạn.</li>
+              <li>Tạo 2 tab trong Google Sheets:
+                <ul>
+                  <li>Tab 1 đặt tên là <code>danhba</code>. Thêm các cột ở hàng 1: <code>Mã nhân viên</code>, <code>Tên nhân viên</code>, <code>Tổ</code>. Điền danh sách nhân viên của bạn bên dưới.</li>
+                  <li>Tab 2 đặt tên là <code>chamcong</code>. Thêm cột tiêu đề ở hàng 1 gồm: <code>STT</code>, <code>mã nhân vien</code>, <code>Họ tên</code>, <code>tổ</code>, các cột từ <code>1</code> đến <code>31</code>, cột <code>Tổng công</code>, và cột <code>Thời điểm</code>.</li>
+                </ul>
+              </li>
+              <li>Nhấp vào <b>Tiện ích mở rộng (Extensions)</b> -> <b>Apps Script</b>.</li>
+              <li>Copy toàn bộ mã nguồn trong file <code>backend.gs</code> dán vào khung soạn thảo Apps Script, nhấn nút lưu lại.</li>
+              <li>Bấm nút <b>Triển khai (Deploy)</b> -> <b>Triển khai mới (New deployment)</b>.</li>
+              <li>Chọn loại cấu hình là <b>Ứng dụng Web (Web app)</b>:
+                <ul>
+                  <li>Mô tả: <i>Bảng chấm công lưới</i></li>
+                  <li>Vai trò: <i>Tôi (tài khoản email của bạn)</i></li>
+                  <li>Quyền truy cập: <i>Mọi người (Anyone)</i>.</li>
+                </ul>
+              </li>
+              <li>Nhấp <b>Triển khai (Deploy)</b>, cấp quyền truy cập nếu Google yêu cầu, sau đó copy đường dẫn <b>Web App URL</b> vừa tạo dán vào ô cấu hình phía trên của ứng dụng.</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- CELL EDIT POPUP PICKER (Quick floating menu) -->
+  <div id="cell-popover" class="cell-popover" style="display: none;">
+    <button class="popover-btn btn-x" title="Đi làm (1.0 công)">X</button>
+    <button class="popover-btn btn-half" title="Nửa ngày (0.5 công)">X/2</button>
+    <button class="popover-btn btn-v" title="Vắng tính 2h (0.25 công)">V</button>
+    <button class="popover-btn btn-clear" title="Xóa ký hiệu"><i class="fa-solid fa-trash-can"></i></button>
+  </div>
+
+  <!-- ROW EDIT MODAL DIALOG (Optional bulk editor) -->
+  <div id="edit-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-pen"></i> Thông tin dòng ngày công</h3>
+        <button id="modal-close" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-record-form">
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label>Họ và tên nhân viên</label>
+              <input type="text" id="edit-name" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label>Mã nhân viên</label>
+              <input type="text" id="edit-id" class="form-control" readonly>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Tổ / Bộ phận</label>
+            <input type="text" id="edit-dept" class="form-control" readonly>
+          </div>
+          <div class="form-group" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border-glass); padding: 12px; border-radius: 8px;">
+            <label style="color: var(--color-primary);">Tác vụ nhanh</label>
+            <p class="page-subtitle" style="margin-bottom: 12px;">Điền nhanh ký hiệu công cho toàn bộ các ngày trống của nhân viên này:</p>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" id="btn-bulk-fill-x" class="btn btn-secondary" style="border-color: var(--color-success); color: var(--color-success);">Điền X ngày đi làm</button>
+              <button type="button" id="btn-bulk-clear" class="btn btn-secondary">Xóa tất cả 31 ngày</button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-edit-close" class="btn btn-secondary">Đóng lại</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Area -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Main JavaScript File -->
+  <script src="app.js"></script>
 </body>
-
 </html>
