@@ -264,7 +264,10 @@ async function refreshData() {
     const cachedEmployees = localStorage.getItem("vnpt_cached_employees");
     
     if (cachedRecords) {
-      state.records = JSON.parse(cachedRecords);
+      state.records = JSON.parse(cachedRecords).map(r => {
+        r["Tổng công"] = calculateTotalWorkdayFromDays(r["Ngày"]);
+        return r;
+      });
     } else {
       state.records = generateDefaultGridRecords();
       saveLocalRecords();
@@ -290,7 +293,10 @@ async function refreshData() {
     const result = await response.json();
     
     if (result && result.success) {
-      state.records = result.records || [];
+      state.records = (result.records || []).map(r => {
+        r["Tổng công"] = calculateTotalWorkdayFromDays(r["Ngày"]);
+        return r;
+      });
       state.employees = result.employees || [];
       state.isLive = true;
       

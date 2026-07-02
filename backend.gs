@@ -302,7 +302,7 @@ function parseRowToRecord(row, month, headers, colIdx) {
     rec["Ngày"].push(String(row[colIdx[String(d)]] || "").trim());
   }
   
-  rec["Tổng công"] = Number(row[colIdx["Tổng công"]]) || 0.0;
+  rec["Tổng công"] = calculateTotalWorkdays(row, colIdx);
   
   var timeVal = row[colIdx["Thời điểm"]];
   if (timeVal instanceof Date) {
