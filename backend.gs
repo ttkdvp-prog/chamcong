@@ -132,16 +132,29 @@ function doGet(e) {
     if (!sheetXacNhan) {
       // Khởi tạo sheet xacnhan nếu chưa có
       sheetXacNhan = doc.insertSheet(SHEET_XAC_NHAN);
-      sheetXacNhan.appendRow(["Tháng", "Tổ", "Trạng thái", "Thời điểm"]);
+      sheetXacNhan.appendRow(["STT", "Tổ", "Tháng", "đồng ý (không sửa)", "có sửa đổi", "Thời điểm xác nhận"]);
     }
     
     var confirmData = sheetXacNhan.getDataRange().getValues();
     for (var i = 1; i < confirmData.length; i++) {
       var cRow = confirmData[i];
-      var cMonth = String(cRow[0] || "").trim();
-      var cDept = String(cRow[1] || "").trim();
-      var cStatus = String(cRow[2] || "").trim();
-      var cTime = cRow[3];
+      if (cRow.length < 6) continue;
+      
+      var cDept = String(cRow[1] || "").trim(); // Cột B: Tổ
+      var cMonthRaw = String(cRow[2] || "").trim(); // Cột C: Tháng
+      var cMonth = sheetMonthToClientMonth(cMonthRaw); // Chuyển từ "Tháng 06/2026" sang "2026-06"
+      
+      var isAgree = String(cRow[3] || "").trim() !== ""; // Cột D: đồng ý (không sửa)
+      var isModify = String(cRow[4] || "").trim() !== ""; // Cột E: có sửa đổi
+      
+      var cStatus = "";
+      if (isAgree) {
+        cStatus = "Không sửa";
+      } else if (isModify) {
+        cStatus = "Có sửa";
+      }
+      
+      var cTime = cRow[5]; // Cột F: Thời điểm xác nhận
       
       if (cMonth === targetMonth) {
         var timeStr = "";
@@ -205,26 +218,43 @@ function doPost(e) {
       var sheetXacNhan = doc.getSheetByName(SHEET_XAC_NHAN);
       if (!sheetXacNhan) {
         sheetXacNhan = doc.insertSheet(SHEET_XAC_NHAN);
-        sheetXacNhan.appendRow(["Tháng", "Tổ", "Trạng thái", "Thời điểm"]);
+        sheetXacNhan.appendRow(["STT", "Tổ", "Tháng", "đồng ý (không sửa)", "có sửa đổi", "Thời điểm xác nhận"]);
       }
       
       var confirmData = sheetXacNhan.getDataRange().getValues();
       var targetRowIndex = -1;
+      var sheetMonthStr = clientMonthToSheetMonth(targetMonth); // e.g. "Tháng 07/2026"
+      
       for (var i = 1; i < confirmData.length; i++) {
-        var cMonth = String(confirmData[i][0]).trim();
-        var cDept = String(confirmData[i][1]).trim();
-        if (cMonth === targetMonth && cDept === department) {
+        var cDept = String(confirmData[i][1]).trim(); // Cột B: Tổ
+        var cMonthRaw = String(confirmData[i][2]).trim(); // Cột C: Tháng
+        if (cMonthRaw === sheetMonthStr && cDept === department) {
           targetRowIndex = i + 1; // 1-based index
           break;
         }
       }
       
       var now = new Date();
+      var valAgree = (status === "Không sửa") ? "x" : "";
+      var valModify = (status === "Có sửa") ? "x" : "";
+      
       if (targetRowIndex !== -1) {
-        sheetXacNhan.getRange(targetRowIndex, 3).setValue(status);
-        sheetXacNhan.getRange(targetRowIndex, 4).setValue(now);
+        // Cập nhật dòng đã có
+        sheetXacNhan.getRange(targetRowIndex, 4).setValue(valAgree); // Cột D (4)
+        sheetXacNhan.getRange(targetRowIndex, 5).setValue(valModify); // Cột E (5)
+        sheetXacNhan.getRange(targetRowIndex, 6).setValue(now); // Cột F (6)
       } else {
-        sheetXacNhan.appendRow([targetMonth, department, status, now]);
+        // Tạo dòng mới
+        var nextStt = 1;
+        if (confirmData.length > 1) {
+          var lastSttVal = Number(confirmData[confirmData.length - 1][0]);
+          if (!isNaN(lastSttVal)) {
+            nextStt = lastSttVal + 1;
+          } else {
+            nextStt = confirmData.length;
+          }
+        }
+        sheetXacNhan.appendRow([nextStt, department, sheetMonthStr, valAgree, valModify, now]);
       }
       
       response = {
@@ -393,3 +423,22 @@ function calculateTotalWorkdays(row, colIdx) {
   }
   return sum;
 }
+
+// Helper: Chuyển đổi định dạng tháng từ Client sang Google Sheets (ví dụ: "2026-06" -> "Tháng 06/2026")
+function clientMonthToSheetMonth(m) {
+  if (!m) return "";
+  var parts = m.split("-");
+  if (parts.length !== 2) return m;
+  return "Tháng " + parts[1] + "/" + parts[0];
+}
+
+// Helper: Chuyển đổi định dạng tháng từ Google Sheets sang Client (ví dụ: "Tháng 06/2026" -> "2026-06")
+function sheetMonthToClientMonth(sm) {
+  if (!sm) return "";
+  var match = sm.match(/Tháng\s+(\d{2})\/(\d{4})/);
+  if (match) {
+    return match[2] + "-" + match[1];
+  }
+  return sm;
+}
+
