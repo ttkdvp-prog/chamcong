@@ -314,7 +314,21 @@ async function refreshData() {
         return r;
       });
       state.employees = result.employees || [];
-      state.confirmations = result.confirmations || [];
+      
+      // Merge confirmations từ server với confirmations local:
+      // Ưu tiên giữ các xác nhận local nếu server chưa có (do chưa đồng bộ được)
+      const serverConfirmations = result.confirmations || [];
+      const localConfirmations = state.confirmations || [];
+      const mergedConfirmations = [...serverConfirmations];
+      localConfirmations.forEach(local => {
+        const existsOnServer = mergedConfirmations.some(
+          s => s.department === local.department && s.month === local.month
+        );
+        if (!existsOnServer && local.status) {
+          mergedConfirmations.push(local); // Giữ lại xác nhận local chưa đồng bộ
+        }
+      });
+      state.confirmations = mergedConfirmations;
       state.isLive = true;
       
       // Lưu trữ cache offline
@@ -1300,15 +1314,20 @@ async function saveConfirmationState(department, status, clickedBtn) {
   
   try {
     const res = await sendPostRequest(payload);
-    if (res && res.success) {
+    // Kiểm tra đây là response từ handleAction (có 'department') chứ không phải doGet thường (có 'records')
+    const isSaveResponse = res && res.success && res.department !== undefined && res.records === undefined;
+    if (isSaveResponse) {
       showToast(`Xác nhận của ${department} đã được lưu lên Google Sheets!`, "success");
-      
       // Đồng bộ thời gian thực tế trả về từ server
       if (res.timestamp) {
         record.timestamp = res.timestamp;
         if (timeCell) timeCell.textContent = res.timestamp;
         localStorage.setItem("vnpt_cached_confirmations", JSON.stringify(state.confirmations));
       }
+    } else if (res && res.records !== undefined) {
+      // Response là doGet thường — Apps Script chưa được deploy đúng phiên bản mới
+      console.warn("[WARN] Server trả về doGet thay vì handleAction — đang dùng dữ liệu cục bộ.");
+      showToast(`Lưu tạm trạng thái tổ ${department} trên máy. Hãy deploy lại Apps Script!`, "warning");
     } else {
       throw new Error(res ? res.message : "API Error");
     }
