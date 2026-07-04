@@ -1194,6 +1194,7 @@ function renderVerificationTab() {
     const tr = document.createElement("tr");
     
     // Tạo nhóm nút bấm công tắc (Segmented Toggles)
+    // Dùng data-attributes thay vì inline onclick để tránh mã hoá sai ký tự tiếng Việt trong HTML
     const isAgreeActive = currentStatus === "Không sửa" ? "active" : "";
     const isModifyActive = currentStatus === "Có sửa" ? "active" : "";
     
@@ -1203,11 +1204,11 @@ function renderVerificationTab() {
       <td style="text-align: center;">
         <div class="status-toggle-group">
           <button class="status-toggle-btn agree ${isAgreeActive}" 
-                  onclick="saveConfirmationState('${dept}', 'Không sửa', this)">
+                  data-dept="${dept}" data-status="agree">
             <i class="fa-solid fa-circle-check"></i> Đồng ý (Không sửa)
           </button>
           <button class="status-toggle-btn modify ${isModifyActive}" 
-                  onclick="saveConfirmationState('${dept}', 'Có sửa', this)">
+                  data-dept="${dept}" data-status="modify">
             <i class="fa-solid fa-triangle-exclamation"></i> Có sửa đổi
           </button>
         </div>
@@ -1216,6 +1217,12 @@ function renderVerificationTab() {
         ${timestampStr}
       </td>
     `;
+    
+    // Gắn event listener trực tiếp vào DOM element để tránh lỗi mã hoá ký tự tiếng Việt
+    const agreeBtn = tr.querySelector('.status-toggle-btn.agree');
+    const modifyBtn = tr.querySelector('.status-toggle-btn.modify');
+    agreeBtn.addEventListener('click', function() { saveConfirmationState(dept, 'Không sửa', this); });
+    modifyBtn.addEventListener('click', function() { saveConfirmationState(dept, 'Có sửa', this); });
     
     tbody.appendChild(tr);
   });
