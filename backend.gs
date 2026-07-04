@@ -146,8 +146,13 @@ function doGet(e) {
       if (cRow.length < 6) continue;
       
       var cDept = String(cRow[1] || "").trim(); // Cột B: Tổ
-      var cMonthRaw = String(cRow[2] || "").trim(); // Cột C: Tháng
-      var cMonth = sheetMonthToClientMonth(cMonthRaw); // Chuyển từ "Tháng 06/2026" sang "2026-06"
+      var cMonthRaw = String(cRow[2] || "").trim(); // Cột C: Tháng (định dạng "2026-07")
+      
+      // Hỗ trợ cả 2 định dạng: "2026-07" (mới) và "Tháng 07/2026" (cũ nếu có)
+      var cMonth = cMonthRaw;
+      if (/^Tháng\s+\d{2}\/\d{4}$/.test(cMonthRaw)) {
+        cMonth = sheetMonthToClientMonth(cMonthRaw); // fallback cho dữ liệu cũ
+      }
       
       var isAgree = String(cRow[3] || "").trim() !== ""; // Cột D: đồng ý (không sửa)
       var isModify = String(cRow[4] || "").trim() !== ""; // Cột E: có sửa đổi
@@ -228,12 +233,12 @@ function doPost(e) {
       
       var confirmData = sheetXacNhan.getDataRange().getValues();
       var targetRowIndex = -1;
-      var sheetMonthStr = clientMonthToSheetMonth(targetMonth); // e.g. "Tháng 07/2026"
+      // Dùng trực tiếp targetMonth ("2026-07") để khớp với dữ liệu trong sheet xacnhan
       
       for (var i = 1; i < confirmData.length; i++) {
         var cDept = String(confirmData[i][1]).trim(); // Cột B: Tổ
         var cMonthRaw = String(confirmData[i][2]).trim(); // Cột C: Tháng
-        if (cMonthRaw === sheetMonthStr && cDept === department) {
+        if (cMonthRaw === targetMonth && cDept === department) {
           targetRowIndex = i + 1; // 1-based index
           break;
         }
@@ -259,7 +264,7 @@ function doPost(e) {
             nextStt = confirmData.length;
           }
         }
-        sheetXacNhan.appendRow([nextStt, department, sheetMonthStr, valAgree, valModify, now]);
+        sheetXacNhan.appendRow([nextStt, department, targetMonth, valAgree, valModify, now]);
       }
       
       response = {
@@ -405,12 +410,12 @@ function handleAction(params) {
       
       var confirmData = sheetXacNhan.getDataRange().getValues();
       var targetRowIndex = -1;
-      var sheetMonthStr = clientMonthToSheetMonth(targetMonth);
+      // Dùng trực tiếp targetMonth ("2026-07") để khớp với dữ liệu trong sheet
       
       for (var i = 1; i < confirmData.length; i++) {
         var cDept = String(confirmData[i][1]).trim();
         var cMonthRaw = String(confirmData[i][2]).trim();
-        if (cMonthRaw === sheetMonthStr && cDept === department) {
+        if (cMonthRaw === targetMonth && cDept === department) {
           targetRowIndex = i + 1;
           break;
         }
@@ -425,8 +430,8 @@ function handleAction(params) {
         sheetXacNhan.getRange(targetRowIndex, 5).setValue(valModify);
         sheetXacNhan.getRange(targetRowIndex, 6).setValue(now);
       } else {
-        var nextStt = confirmData.length; // rows after header = STT value
-        sheetXacNhan.appendRow([nextStt, department, sheetMonthStr, valAgree, valModify, now]);
+        var nextStt = confirmData.length; // số dòng sau header = STT mới
+        sheetXacNhan.appendRow([nextStt, department, targetMonth, valAgree, valModify, now]);
       }
       
       response = {
