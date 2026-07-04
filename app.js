@@ -144,7 +144,6 @@ let departmentWorkdaysChart = null;
 
 // Khởi chạy ứng dụng
 document.addEventListener("DOMContentLoaded", () => {
-  loadLocalConfig();
   setupEventListeners();
   initMobileMenu();
   initTabRouting();
@@ -252,16 +251,6 @@ function initMonthFilters() {
 /* ==========================================================================
    3. TẢI DỮ LIỆU & ĐỒNG BỘ GOOGLE SHEETS
    ========================================================================== */
-function loadLocalConfig() {
-  const savedUrl = localStorage.getItem("vnpt_attendance_api");
-  if (savedUrl) {
-    state.apiUrl = savedUrl.trim();
-  }
-  const apiUrlInput = document.getElementById("api-url-input");
-  if (apiUrlInput) {
-    apiUrlInput.value = state.apiUrl;
-  }
-}
 
 async function refreshData() {
   if (!state.apiUrl) {
@@ -990,18 +979,6 @@ function saveLocalRecords() {
   localStorage.setItem("vnpt_cached_grid_records", JSON.stringify(state.records));
 }
 
-function handleSaveConfig() {
-  const apiUrlInput = document.getElementById("api-url-input");
-  if (!apiUrlInput) return;
-  const urlInput = apiUrlInput.value;
-  const formattedUrl = urlInput.trim();
-  
-  localStorage.setItem("vnpt_attendance_api", formattedUrl);
-  state.apiUrl = formattedUrl;
-  
-  showToast("Đã lưu địa chỉ kết nối API mới!", "success");
-  refreshData();
-}
 
 /* ==========================================================================
    10. TIỆN ÍCH HELPER (UTILITIES)
@@ -1094,11 +1071,6 @@ function setupEventListeners() {
     };
   }
   
-  // Lưu API
-  const btnSaveConfig = document.getElementById("btn-save-config");
-  if (btnSaveConfig) {
-    btnSaveConfig.onclick = handleSaveConfig;
-  }
   
   // Modal Actions
   document.getElementById("modal-close").onclick = closeEditModal;
