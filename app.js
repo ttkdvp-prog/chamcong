@@ -535,8 +535,8 @@ function renderGrid() {
       `;
     }
     
-    const totalWorkdays = Number(r["Tổng công"] || 0);
-    const stdWorkdays = Number(r["Công chuẩn"] || 0);
+    const totalWorkdays = parseFloat(r["Tổng công"]) || 0;
+    const stdWorkdays = parseFloat(r["Công chuẩn"]) || 22; // Mặc định 22 nếu lỗi hoặc trống
     
     let compareText = "";
     let compareStyle = "";
@@ -912,13 +912,24 @@ function renderDashboardSummaryTable() {
   filtered.forEach((r, idx) => {
     const tr = document.createElement("tr");
     const totalWorkdays = calculateTotalWorkdayFromDays(r["Ngày"]);
+    const stdWorkdays = parseFloat(r["Công chuẩn"]) || 22; // Mặc định 22 nếu trống
+    
+    let workdayStyle = "color: var(--color-primary);";
+    let warningLabel = "";
+    
+    if (totalWorkdays > stdWorkdays) {
+      workdayStyle = "color: var(--color-danger, #ef4444); font-weight: bold;";
+      warningLabel = ` <span class="badge danger-badge" style="background: rgba(244, 63, 94, 0.12); color: var(--color-danger); padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; margin-left: 5px;">Lớn hơn</span>`;
+    }
     
     tr.innerHTML = `
       <td style="text-align: center; font-weight: 500;">${idx + 1}</td>
       <td style="font-family: monospace; font-size: 0.85rem; color: var(--color-text-muted);">${r["Mã nhân viên"]}</td>
       <td style="font-weight: 600;">${r["Tên nhân viên"]}</td>
       <td style="color: var(--color-text-muted); font-size: 0.9rem;">${r["Tổ"]}</td>
-      <td style="text-align: center; font-weight: 700; color: var(--color-primary); font-size: 1.05rem;">${totalWorkdays.toFixed(1)}</td>
+      <td style="text-align: center; font-weight: 700; font-size: 1.05rem; ${workdayStyle}">
+        ${totalWorkdays.toFixed(1)}${warningLabel}
+      </td>
     `;
     
     tbody.appendChild(tr);
