@@ -122,6 +122,7 @@ const state = {
   apiUrl: localStorage.getItem("vnpt_attendance_api") || "https://script.google.com/macros/s/AKfycbyiMDOaZVbjE4jVtZAvRP7Nb0lS3u7NsH4zD2F8xsYS5PYW_3JmJ7rzvtoy-4yMyBl6/exec",
   employees: [...DEFAULT_EMPLOYEES],
   records: [],
+  confirmations: [],
   isLive: false,
   activeTab: "attendance",
   selectedMonth: "2026-07",
@@ -163,7 +164,8 @@ function initTabRouting() {
   
   const tabTitles = {
     attendance: "Bảng Chấm Công Tháng",
-    dashboard: "Thống Kê KPI Chuyên Cần"
+    dashboard: "Thống Kê KPI Chuyên Cần",
+    verification: "Xác Nhận & Thống Kê Phê Duyệt Số Liệu"
   };
 
   navButtons.forEach(btn => {
@@ -187,6 +189,8 @@ function initTabRouting() {
         renderDashboardSummaryTable();
       } else if (tabId === "attendance") {
         renderGrid();
+      } else if (tabId === "verification") {
+        renderVerificationTab();
       }
       
       hidePopover();
@@ -258,12 +262,19 @@ async function refreshData() {
     // Sử dụng dữ liệu cache localStorage nếu có, nếu không sinh ngẫu nhiên
     const cachedRecords = localStorage.getItem("vnpt_cached_grid_records");
     const cachedEmployees = localStorage.getItem("vnpt_cached_employees");
+    const cachedConfirmations = localStorage.getItem("vnpt_cached_confirmations");
     
     if (cachedRecords) {
       state.records = JSON.parse(cachedRecords).map(r => {
         r["Tổng công"] = calculateTotalWorkdayFromDays(r["Ngày"]);
         return r;
       });
+    }
+    
+    if (cachedConfirmations) {
+      state.confirmations = JSON.parse(cachedConfirmations);
+    } else {
+      state.confirmations = [];
     }
     
     // Đảm bảo luôn sinh dữ liệu mẫu cho tháng hiện tại nếu chưa tồn tại
@@ -282,8 +293,7 @@ async function refreshData() {
     }
     
     setupDeptFilters();
-    renderGrid();
-    renderDashboardSummaryTable();
+    triggerActiveTabRender();
     return;
   }
   
@@ -300,11 +310,13 @@ async function refreshData() {
         return r;
       });
       state.employees = result.employees || [];
+      state.confirmations = result.confirmations || [];
       state.isLive = true;
       
       // Lưu trữ cache offline
       localStorage.setItem("vnpt_cached_grid_records", JSON.stringify(state.records));
       localStorage.setItem("vnpt_cached_employees", JSON.stringify(state.employees));
+      localStorage.setItem("vnpt_cached_confirmations", JSON.stringify(state.confirmations));
       
       setConnectionStatus(true);
       showToast("Tải dữ liệu thành công!", "success");
@@ -321,6 +333,12 @@ async function refreshData() {
     if (cachedRecords) {
       state.records = JSON.parse(cachedRecords);
     }
+    const cachedConfirmations = localStorage.getItem("vnpt_cached_confirmations");
+    if (cachedConfirmations) {
+      state.confirmations = JSON.parse(cachedConfirmations);
+    } else {
+      state.confirmations = [];
+    }
     
     // Đảm bảo luôn sinh dữ liệu mẫu cho tháng hiện tại nếu cache trống để tránh màn hình trống
     const hasRecordsForMonth = state.records.some(r => r["Tháng"] === state.selectedMonth);
@@ -332,8 +350,19 @@ async function refreshData() {
   }
   
   setupDeptFilters();
-  renderGrid();
-  renderDashboardSummaryTable();
+  triggerActiveTabRender();
+}
+
+function triggerActiveTabRender() {
+  if (state.activeTab === "attendance") {
+    renderGrid();
+  } else if (state.activeTab === "dashboard") {
+    updateDashboardKPIs();
+    updateCharts();
+    renderDashboardSummaryTable();
+  } else if (state.activeTab === "verification") {
+    renderVerificationTab();
+  }
 }
 
 function setConnectionStatus(isLive) {
@@ -1062,6 +1091,15 @@ function setupEventListeners() {
     renderDashboardSummaryTable();
   };
   
+  // Thay đổi tháng trên Xác nhận số liệu
+  const verifyMonthFilter = document.getElementById("verification-month-filter");
+  if (verifyMonthFilter) {
+    verifyMonthFilter.onchange = (e) => {
+      state.selectedMonth = e.target.value;
+      refreshData();
+    };
+  }
+  
   // Thay đổi tổ trên thống kê
   const dashDeptFilter = document.getElementById("dashboard-dept-filter");
   if (dashDeptFilter) {
@@ -1103,3 +1141,162 @@ function setupEventListeners() {
     if (e.target === modal) closeEditModal();
   };
 }
+
+/* ==========================================================================
+   11. QUẢN LÝ XÁC NHẬN SỐ LIỆU & PHÊ DUYỆT TỔ
+   ========================================================================== */
+function renderVerificationTab() {
+  const tbody = document.getElementById("verification-summary-body");
+  if (!tbody) return;
+  
+  // Đồng bộ giá trị bộ lọc tháng
+  const verifyMonthFilter = document.getElementById("verification-month-filter");
+  if (verifyMonthFilter && verifyMonthFilter.value !== state.selectedMonth) {
+    verifyMonthFilter.value = state.selectedMonth;
+  }
+  
+  // Trích xuất danh sách các Tổ độc nhất từ Danh sách nhân viên
+  const departments = [...new Set(state.employees.map(emp => emp.department))].sort();
+  
+  tbody.innerHTML = "";
+  if (departments.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--color-text-muted); padding: 30px;">Không tìm thấy tổ bộ phận nào.</td></tr>`;
+    updateVerificationKPIs(0, 0, 0);
+    return;
+  }
+  
+  let agreeCount = 0;
+  let modifyCount = 0;
+  
+  departments.forEach((dept, idx) => {
+    // Tìm trạng thái xác nhận đã lưu cho tổ này trong tháng
+    const record = state.confirmations.find(c => c.department === dept && c.month === state.selectedMonth);
+    const currentStatus = record ? record.status : ""; // "Không sửa", "Có sửa" hoặc trống
+    const timestampStr = record ? record.timestamp : "-";
+    
+    if (currentStatus === "Không sửa") agreeCount++;
+    else if (currentStatus === "Có sửa") modifyCount++;
+    
+    const tr = document.createElement("tr");
+    
+    // Tạo nhóm nút bấm công tắc (Segmented Toggles)
+    const isAgreeActive = currentStatus === "Không sửa" ? "active" : "";
+    const isModifyActive = currentStatus === "Có sửa" ? "active" : "";
+    
+    tr.innerHTML = `
+      <td style="text-align: center; font-weight: 500;">${idx + 1}</td>
+      <td style="font-weight: 600; text-align: left; padding-left: 20px;">${dept}</td>
+      <td style="text-align: center;">
+        <div class="status-toggle-group">
+          <button class="status-toggle-btn agree ${isAgreeActive}" 
+                  onclick="saveConfirmationState('${dept}', 'Không sửa', this)">
+            <i class="fa-solid fa-circle-check"></i> Đồng ý (Không sửa)
+          </button>
+          <button class="status-toggle-btn modify ${isModifyActive}" 
+                  onclick="saveConfirmationState('${dept}', 'Có sửa', this)">
+            <i class="fa-solid fa-triangle-exclamation"></i> Có sửa đổi
+          </button>
+        </div>
+      </td>
+      <td style="text-align: center; color: var(--color-text-muted); font-size: 0.85rem;" id="verify-time-${dept.replace(/\s+/g, '-')}">
+        ${timestampStr}
+      </td>
+    `;
+    
+    tbody.appendChild(tr);
+  });
+  
+  updateVerificationKPIs(departments.length, agreeCount, modifyCount);
+}
+
+function updateVerificationKPIs(total, agree, modify) {
+  const totalEl = document.getElementById("kpi-verify-total");
+  const agreeEl = document.getElementById("kpi-verify-agree");
+  const modifyEl = document.getElementById("kpi-verify-modify");
+  
+  if (totalEl) totalEl.textContent = `${total} Tổ`;
+  if (agreeEl) agreeEl.textContent = `${agree} Tổ`;
+  if (modifyEl) modifyEl.textContent = `${modify} Tổ`;
+}
+
+async function saveConfirmationState(department, status, clickedBtn) {
+  // Tìm record cũ nếu có
+  let record = state.confirmations.find(c => c.department === department && c.month === state.selectedMonth);
+  const now = new Date();
+  const timeStr = Utilities_formatDateTime(now);
+  
+  if (record) {
+    record.status = status;
+    record.timestamp = timeStr;
+  } else {
+    record = {
+      month: state.selectedMonth,
+      department: department,
+      status: status,
+      timestamp: timeStr
+    };
+    state.confirmations.push(record);
+  }
+  
+  // Lưu cache cục bộ lập tức (Optimistic UI)
+  localStorage.setItem("vnpt_cached_confirmations", JSON.stringify(state.confirmations));
+  
+  // Đổi trạng thái hiển thị của các nút trong group ngay lập tức
+  const parentGroup = clickedBtn.parentElement;
+  parentGroup.querySelectorAll(".status-toggle-btn").forEach(btn => btn.classList.remove("active"));
+  clickedBtn.classList.add("active");
+  
+  // Cập nhật lại thời gian hiển thị trên cột
+  const timeCellId = `verify-time-${department.replace(/\s+/g, '-')}`;
+  const timeCell = document.getElementById(timeCellId);
+  if (timeCell) {
+    timeCell.textContent = timeStr;
+  }
+  
+  // Cập nhật lại KPIs ngay lập tức
+  const departments = [...new Set(state.employees.map(emp => emp.department))];
+  let agreeCount = 0;
+  let modifyCount = 0;
+  departments.forEach(dept => {
+    const rec = state.confirmations.find(c => c.department === dept && c.month === state.selectedMonth);
+    if (rec) {
+      if (rec.status === "Không sửa") agreeCount++;
+      else if (rec.status === "Có sửa") modifyCount++;
+    }
+  });
+  updateVerificationKPIs(departments.length, agreeCount, modifyCount);
+  
+  // Báo toast tiến trình
+  showToast(`Đang lưu xác nhận cho ${department}...`, "info");
+  
+  // Gửi API đồng bộ
+  const payload = {
+    action: "save-confirmation",
+    month: state.selectedMonth,
+    department: department,
+    status: status
+  };
+  
+  try {
+    const res = await sendPostRequest(payload);
+    if (res && res.success) {
+      showToast(`Xác nhận của ${department} đã được lưu lên Google Sheets!`, "success");
+      
+      // Đồng bộ thời gian thực tế trả về từ server
+      if (res.timestamp) {
+        record.timestamp = res.timestamp;
+        if (timeCell) timeCell.textContent = res.timestamp;
+        localStorage.setItem("vnpt_cached_confirmations", JSON.stringify(state.confirmations));
+      }
+    } else {
+      throw new Error(res ? res.message : "API Error");
+    }
+  } catch (err) {
+    console.error("Save confirmation error:", err);
+    showToast(`Lưu tạm trạng thái tổ ${department} trên máy. Chưa thể đồng bộ lên Sheets.`, "warning");
+  }
+}
+
+// Expose functions globally for HTML onclick event handlers
+window.renderVerificationTab = renderVerificationTab;
+window.saveConfirmationState = saveConfirmationState;

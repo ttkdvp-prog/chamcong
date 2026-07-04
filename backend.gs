@@ -6,6 +6,12 @@
 
 var SHEET_CHAM_CONG_THANG = "chamcong"; // Tên sheet chính chứa bảng chấm công tháng
 var SHEET_DANH_BA = "danhba";
+var SHEET_XAC_NHAN = "xacnhan";
+
+function isValidSheetName(name) {
+  var monthPattern = /^\d{4}-\d{2}$/;
+  return name === SHEET_CHAM_CONG_THANG || name === SHEET_DANH_BA || name === SHEET_XAC_NHAN || monthPattern.test(name);
+}
 
 function doGet(e) {
   var response = {};
@@ -54,6 +60,11 @@ function doGet(e) {
     } else {
       var now = new Date();
       targetMonth = Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy-MM");
+    }
+    
+    // Kiểm soát phạm vi bảo mật tên sheet
+    if (!isValidSheetName(targetMonth)) {
+      throw new Error("Tên trang tính yêu cầu không hợp lệ.");
     }
     
     // Xác định tên sheet cần đọc: 
@@ -115,12 +126,46 @@ function doGet(e) {
     // Không tự động tạo sheet mới để tránh làm mất dữ liệu của tab mặc định 'chamcong'.
     // Người dùng chỉ cần làm việc trên tab mặc định hoặc tự tạo thêm các tab tháng khác trên Google Sheets.
     
+    // 2. Đọc trạng thái Xác nhận của các tổ
+    var sheetXacNhan = doc.getSheetByName(SHEET_XAC_NHAN);
+    var confirmations = [];
+    if (!sheetXacNhan) {
+      // Khởi tạo sheet xacnhan nếu chưa có
+      sheetXacNhan = doc.insertSheet(SHEET_XAC_NHAN);
+      sheetXacNhan.appendRow(["Tháng", "Tổ", "Trạng thái", "Thời điểm"]);
+    }
+    
+    var confirmData = sheetXacNhan.getDataRange().getValues();
+    for (var i = 1; i < confirmData.length; i++) {
+      var cRow = confirmData[i];
+      var cMonth = String(cRow[0] || "").trim();
+      var cDept = String(cRow[1] || "").trim();
+      var cStatus = String(cRow[2] || "").trim();
+      var cTime = cRow[3];
+      
+      if (cMonth === targetMonth) {
+        var timeStr = "";
+        if (cTime instanceof Date) {
+          timeStr = Utilities.formatDate(cTime, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
+        } else {
+          timeStr = String(cTime || "");
+        }
+        confirmations.push({
+          month: cMonth,
+          department: cDept,
+          status: cStatus,
+          timestamp: timeStr
+        });
+      }
+    }
+    
     response = {
       success: true,
       month: targetMonth,
       sheetUsed: activeSheetName,
       employees: employees,
-      records: monthRecords
+      records: monthRecords,
+      confirmations: confirmations
     };
     
   } catch (error) {
@@ -140,9 +185,62 @@ function doPost(e) {
     var postData = JSON.parse(e.postData.contents);
     var action = postData.action || "save-cell";
     var targetMonth = String(postData.month).trim();
-    var employeeId = String(postData.employeeId).trim();
+    
+    // Kiểm soát phạm vi bảo mật tên sheet
+    if (!isValidSheetName(targetMonth)) {
+      throw new Error("Tên trang tính yêu cầu không hợp lệ.");
+    }
     
     var doc = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // Xử lý lưu trạng thái xác nhận của tổ
+    if (action === "save-confirmation") {
+      var department = String(postData.department).trim();
+      var status = String(postData.status).trim(); // "Không sửa" hoặc "Có sửa"
+      
+      if (status !== "Không sửa" && status !== "Có sửa") {
+        throw new Error("Trạng thái xác nhận không hợp lệ.");
+      }
+      
+      var sheetXacNhan = doc.getSheetByName(SHEET_XAC_NHAN);
+      if (!sheetXacNhan) {
+        sheetXacNhan = doc.insertSheet(SHEET_XAC_NHAN);
+        sheetXacNhan.appendRow(["Tháng", "Tổ", "Trạng thái", "Thời điểm"]);
+      }
+      
+      var confirmData = sheetXacNhan.getDataRange().getValues();
+      var targetRowIndex = -1;
+      for (var i = 1; i < confirmData.length; i++) {
+        var cMonth = String(confirmData[i][0]).trim();
+        var cDept = String(confirmData[i][1]).trim();
+        if (cMonth === targetMonth && cDept === department) {
+          targetRowIndex = i + 1; // 1-based index
+          break;
+        }
+      }
+      
+      var now = new Date();
+      if (targetRowIndex !== -1) {
+        sheetXacNhan.getRange(targetRowIndex, 3).setValue(status);
+        sheetXacNhan.getRange(targetRowIndex, 4).setValue(now);
+      } else {
+        sheetXacNhan.appendRow([targetMonth, department, status, now]);
+      }
+      
+      response = {
+        success: true,
+        message: "Cập nhật xác nhận số liệu thành công!",
+        month: targetMonth,
+        department: department,
+        status: status,
+        timestamp: Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss")
+      };
+      
+      return ContentService.createTextOutput(JSON.stringify(response))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    var employeeId = String(postData.employeeId || "").trim();
     
     // Ưu tiên tìm sheet trùng tên tháng, nếu không có dùng sheet mặc định "chamcong"
     var sheetChamCong = doc.getSheetByName(targetMonth);

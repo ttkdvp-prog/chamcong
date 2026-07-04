@@ -50,6 +50,12 @@
             <span>Thống Kê KPI</span>
           </button>
         </li>
+        <li class="nav-item">
+          <button class="nav-button" data-tab="verification">
+            <i class="fa-solid fa-file-signature"></i>
+            <span>Xác Nhận Số Liệu</span>
+          </button>
+        </li>
       </nav>
       
       <div class="sidebar-footer">
@@ -239,6 +245,75 @@
           </div>
         </div>
       </section>
+      
+      <!-- TAB 3: VERIFICATION AND APPROVAL -->
+      <section id="verification-tab" class="tab-pane">
+        <!-- Verification Month Filter -->
+        <div class="table-actions">
+          <div class="chart-title">Xác nhận & Thống kê phê duyệt số liệu</div>
+          <div class="filter-group">
+            <select id="verification-month-filter" class="form-control filter-select">
+              <!-- JS will populate monthly options -->
+            </select>
+          </div>
+        </div>
+
+        <!-- KPI Metrics Grid for Verification -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon primary">
+              <i class="fa-solid fa-people-group"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Tổng số tổ hạ tầng</span>
+              <span id="kpi-verify-total" class="kpi-value">0</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon success">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Số tổ đồng ý (Không sửa)</span>
+              <span id="kpi-verify-agree" class="kpi-value">0</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon danger">
+              <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Số tổ có sửa đổi</span>
+              <span id="kpi-verify-modify" class="kpi-value">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Verification Table -->
+        <div class="glass-panel">
+          <div class="chart-title" style="margin-bottom: 20px;">
+            <span><i class="fa-solid fa-list-check"></i> Danh sách trạng thái phê duyệt của các Tổ</span>
+            <span class="page-subtitle" style="font-weight: normal; font-size: 0.8rem; color: var(--color-text-muted);">Tổ trưởng tích chọn tương ứng với tình trạng số liệu chấm công tháng</span>
+          </div>
+
+          <div class="table-container">
+            <table class="glass-table">
+              <thead>
+                <tr>
+                  <th style="width: 70px; text-align: center;">STT</th>
+                  <th>Tên Tổ / Bộ phận</th>
+                  <th style="width: 340px; text-align: center;">Trạng thái số liệu chấm công</th>
+                  <th style="width: 200px; text-align: center;">Thời điểm xác nhận</th>
+                </tr>
+              </thead>
+              <tbody id="verification-summary-body">
+                <!-- Dữ liệu được nạp động từ JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
 
 
 
