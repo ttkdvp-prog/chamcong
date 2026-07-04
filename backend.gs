@@ -559,6 +559,10 @@ function parseRowToRecord(row, month, headers, colIdx) {
   
   rec["Tổng công"] = calculateTotalWorkdays(row, colIdx);
   
+  // Đọc cột Công chuẩn (mặc định là 22 nếu không tìm thấy)
+  var stdWorkdayIdx = colIdx["Công chuẩn"];
+  rec["Công chuẩn"] = stdWorkdayIdx !== undefined ? (Number(row[stdWorkdayIdx]) || 22) : 22;
+  
   var timeVal = row[colIdx["Thời điểm"]];
   if (timeVal instanceof Date) {
     rec["Thời điểm"] = Utilities.formatDate(timeVal, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");

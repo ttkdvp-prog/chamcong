@@ -110,6 +110,7 @@ function generateDefaultGridRecords(targetMonth) {
       "Tổ": emp.department,
       "Ngày": days,
       "Tổng công": total,
+      "Công chuẩn": 22, // Mặc định cho dữ liệu mẫu
       "Thời điểm": "2026-07-02 17:00:00"
     });
   });
@@ -271,6 +272,7 @@ async function refreshData() {
   if (cachedRecords) {
     state.records = JSON.parse(cachedRecords).map(r => {
       r["Tổng công"] = calculateTotalWorkdayFromDays(r["Ngày"]);
+      r["Công chuẩn"] = r["Công chuẩn"] !== undefined ? Number(r["Công chuẩn"]) : 22;
       return r;
     });
   }
@@ -313,6 +315,7 @@ async function refreshData() {
     if (result && result.success) {
       state.records = (result.records || []).map(r => {
         r["Tổng công"] = calculateTotalWorkdayFromDays(r["Ngày"]);
+        r["Công chuẩn"] = r["Công chuẩn"] !== undefined ? Number(r["Công chuẩn"]) : 22;
         return r;
       });
       state.employees = result.employees || [];
@@ -434,6 +437,8 @@ function renderGrid() {
     headerHtml += `<th class="day-header">${d}</th>`;
   }
   headerHtml += `
+      <th class="day-header" style="min-width: 90px; background: rgba(255, 255, 255, 0.02); text-align: center;">Công chuẩn</th>
+      <th class="day-header" style="min-width: 95px; background: rgba(255, 255, 255, 0.02); text-align: center;">So sánh</th>
       <th class="sticky-col-total">Công</th>
       <th style="min-width: 60px;">Sửa</th>
     </tr>
@@ -472,7 +477,7 @@ function renderGrid() {
   // 3. Dựng Thân bảng (Body)
   tbody.innerHTML = "";
   if (filteredRecords.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${5 + daysInMonth}" style="text-align: center; color: var(--color-text-muted); padding: 40px;">Không tìm thấy dữ liệu nhân viên nào phù hợp.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${7 + daysInMonth}" style="text-align: center; color: var(--color-text-muted); padding: 40px;">Không tìm thấy dữ liệu nhân viên nào phù hợp.</td></tr>`;
     updateReviewBanner(0);
     return;
   }
@@ -530,8 +535,22 @@ function renderGrid() {
       `;
     }
     
+    const totalWorkdays = Number(r["Tổng công"] || 0);
+    const stdWorkdays = Number(r["Công chuẩn"] || 0);
+    
+    let compareText = "";
+    let compareStyle = "";
+    if (totalWorkdays > stdWorkdays) {
+      compareText = "Lớn hơn";
+      compareStyle = "color: var(--color-danger, #ef4444); font-weight: bold; text-align: center; font-size: 0.85rem;";
+    } else {
+      compareStyle = "text-align: center; font-size: 0.85rem; color: var(--color-text-muted);";
+    }
+    
     rowHtml += `
-      <td class="sticky-col-total" id="total-val-${r["Mã nhân viên"]}">${Number(r["Tổng công"] || 0).toFixed(1)}</td>
+      <td style="text-align: center; font-weight: 600; color: var(--color-text-muted); background: rgba(255, 255, 255, 0.01);">${stdWorkdays}</td>
+      <td style="${compareStyle}">${compareText}</td>
+      <td class="sticky-col-total" id="total-val-${r["Mã nhân viên"]}">${totalWorkdays.toFixed(1)}</td>
       <td>
         <button class="btn-icon edit" onclick="openRowEditModal('${r["Mã nhân viên"]}')" style="margin: 0 auto;">
           <i class="fa-solid fa-user-pen"></i>
