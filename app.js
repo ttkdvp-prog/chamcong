@@ -549,7 +549,7 @@ function renderGrid() {
     
     rowHtml += `
       <td style="text-align: center; font-weight: 600; color: var(--color-text-muted); background: rgba(255, 255, 255, 0.01);">${stdWorkdays}</td>
-      <td style="${compareStyle}">${compareText}</td>
+      <td id="compare-val-${r["Mã nhân viên"]}" style="${compareStyle}">${compareText}</td>
       <td class="sticky-col-total" id="total-val-${r["Mã nhân viên"]}">${totalWorkdays.toFixed(1)}</td>
       <td>
         <button class="btn-icon edit" onclick="openRowEditModal('${r["Mã nhân viên"]}')" style="margin: 0 auto;">
@@ -657,6 +657,19 @@ async function updateCellState(empId, dayNum, value, cellElement) {
   
   const totalEl = document.getElementById(`total-val-${empId}`);
   if (totalEl) totalEl.textContent = total.toFixed(1);
+  
+  // Cập nhật tức thời cột So Sánh ở giao diện (không cần tải lại hay đổi tab)
+  const compareEl = document.getElementById(`compare-val-${empId}`);
+  if (compareEl) {
+    const stdWorkdays = parseFloat(record["Công chuẩn"]) || 22;
+    if (total > stdWorkdays) {
+      compareEl.textContent = "Lớn hơn";
+      compareEl.style.cssText = "color: var(--color-danger, #ef4444); font-weight: bold; text-align: center; font-size: 0.85rem;";
+    } else {
+      compareEl.textContent = "";
+      compareEl.style.cssText = "text-align: center; font-size: 0.85rem; color: var(--color-text-muted);";
+    }
+  }
   
   recalculateIncompleteBannerCount();
   saveLocalRecords();
