@@ -119,7 +119,7 @@ function generateDefaultGridRecords(targetMonth) {
 
 // Quản lý trạng thái ứng dụng (State)
 const state = {
-  apiUrl: localStorage.getItem("vnpt_attendance_api") || "https://script.google.com/macros/s/AKfycbyiMDOaZVbjE4jVtZAvRP7Nb0lS3u7NsH4zD2F8xsYS5PYW_3JmJ7rzvtoy-4yMyBl6/exec",
+  apiUrl: "https://script.google.com/macros/s/AKfycbyiMDOaZVbjE4jVtZAvRP7Nb0lS3u7NsH4zD2F8xsYS5PYW_3JmJ7rzvtoy-4yMyBl6/exec",
   employees: [...DEFAULT_EMPLOYEES],
   records: [],
   confirmations: [],
@@ -145,6 +145,7 @@ let departmentWorkdaysChart = null;
 
 // Khởi chạy ứng dụng
 document.addEventListener("DOMContentLoaded", () => {
+  localStorage.removeItem("vnpt_attendance_api");
   setupEventListeners();
   initMobileMenu();
   initTabRouting();
