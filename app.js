@@ -237,7 +237,9 @@ function initMonthFilters() {
     months.push(mStr);
   }
   
-  state.selectedMonth = months[0];
+  // Mặc định chọn tháng trước đó (months[1]) thay vì tháng hiện tại (months[0])
+  // Ví dụ: Hiện tại là tháng 7, trang web sẽ tự chọn mặc định hiển thị tháng 6 để tránh nhầm lẫn.
+  state.selectedMonth = months[1] || months[0];
   
   const filters = [gridMonthFilter, dashMonthFilter, verifyMonthFilter].filter(f => f !== null);
   filters.forEach(filter => {
