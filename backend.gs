@@ -16,6 +16,11 @@ function isValidSheetName(name) {
 function doGet(e) {
   var response = {};
   try {
+    // Hỗ trợ ghi dữ liệu qua GET để tránh lỗi CORS với redirect của Google Apps Script
+    if (e && e.parameter && e.parameter.action) {
+      return handleAction(e.parameter);
+    }
+    
     var doc = SpreadsheetApp.getActiveSpreadsheet();
     
     // 1. Đọc Danh bạ nhân sự (bỏ qua hàng 2 trống, lấy cột Bộ phận làm Tổ)
@@ -370,7 +375,162 @@ function doPost(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// Helper: Trích xuất chỉ mục cột
+// Hàm xử lý tất cả các hành động ghi dữ liệu qua GET để tránh lỗi CORS redirect
+function handleAction(params) {
+  var response = {};
+  try {
+    var action = String(params.action || "").trim();
+    var targetMonth = String(params.month || "").trim();
+    
+    if (!isValidSheetName(targetMonth)) {
+      throw new Error("Tên trang tính yêu cầu không hợp lệ.");
+    }
+    
+    var doc = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // --- Xử lý Xác nhận số liệu ---
+    if (action === "save-confirmation") {
+      var department = String(params.department || "").trim();
+      var status = String(params.status || "").trim();
+      
+      if (status !== "Không sửa" && status !== "Có sửa") {
+        throw new Error("Trạng thái xác nhận không hợp lệ.");
+      }
+      
+      var sheetXacNhan = doc.getSheetByName(SHEET_XAC_NHAN);
+      if (!sheetXacNhan) {
+        sheetXacNhan = doc.insertSheet(SHEET_XAC_NHAN);
+        sheetXacNhan.appendRow(["STT", "Tổ", "Tháng", "đồng ý (không sửa)", "có sửa đổi", "Thời điểm xác nhận"]);
+      }
+      
+      var confirmData = sheetXacNhan.getDataRange().getValues();
+      var targetRowIndex = -1;
+      var sheetMonthStr = clientMonthToSheetMonth(targetMonth);
+      
+      for (var i = 1; i < confirmData.length; i++) {
+        var cDept = String(confirmData[i][1]).trim();
+        var cMonthRaw = String(confirmData[i][2]).trim();
+        if (cMonthRaw === sheetMonthStr && cDept === department) {
+          targetRowIndex = i + 1;
+          break;
+        }
+      }
+      
+      var now = new Date();
+      var valAgree = (status === "Không sửa") ? "x" : "";
+      var valModify = (status === "Có sửa") ? "x" : "";
+      
+      if (targetRowIndex !== -1) {
+        sheetXacNhan.getRange(targetRowIndex, 4).setValue(valAgree);
+        sheetXacNhan.getRange(targetRowIndex, 5).setValue(valModify);
+        sheetXacNhan.getRange(targetRowIndex, 6).setValue(now);
+      } else {
+        var nextStt = confirmData.length; // rows after header = STT value
+        sheetXacNhan.appendRow([nextStt, department, sheetMonthStr, valAgree, valModify, now]);
+      }
+      
+      response = {
+        success: true,
+        message: "Cập nhật xác nhận số liệu thành công!",
+        month: targetMonth,
+        department: department,
+        status: status,
+        timestamp: Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss")
+      };
+      
+      return ContentService.createTextOutput(JSON.stringify(response))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // --- Xử lý lưu ô chấm công (save-cell) ---
+    if (action === "save-cell") {
+      var employeeId = String(params.employeeId || "").trim();
+      var day = Number(params.day);
+      var value = String(params.value !== undefined ? params.value : "").trim();
+      
+      if (!employeeId) throw new Error("Thiếu mã nhân viên.");
+      if (day < 1 || day > 31) throw new Error("Số ngày phải nằm trong khoảng 1-31.");
+      
+      var sheetChamCong = doc.getSheetByName(targetMonth) || doc.getSheetByName(SHEET_CHAM_CONG_THANG);
+      if (!sheetChamCong) throw new Error("Không tìm thấy trang tính chấm công.");
+      
+      var data = sheetChamCong.getDataRange().getValues();
+      var headers = data[0];
+      var colIdx = getColumnIndexes(headers);
+      var targetRowIndex = -1;
+      var foundRow = null;
+      
+      for (var i = 1; i < data.length; i++) {
+        if (String(data[i][colIdx["mã nhân vien"]]).trim() === employeeId) {
+          targetRowIndex = i + 1;
+          foundRow = data[i];
+          break;
+        }
+      }
+      if (targetRowIndex === -1) throw new Error("Không tìm thấy nhân viên " + employeeId);
+      
+      var colNum = colIdx[String(day)] + 1;
+      sheetChamCong.getRange(targetRowIndex, colNum).setValue(value);
+      
+      var rowVals = sheetChamCong.getRange(targetRowIndex, 1, 1, headers.length).getValues()[0];
+      rowVals[colIdx[String(day)]] = value;
+      var totalWorkday = calculateTotalWorkdays(rowVals, colIdx);
+      sheetChamCong.getRange(targetRowIndex, colIdx["Tổng công"] + 1).setValue(totalWorkday);
+      sheetChamCong.getRange(targetRowIndex, colIdx["Thời điểm"] + 1).setValue(new Date());
+      
+      response = { success: true, message: "Cập nhật ô thành công!", employeeId: employeeId, day: day, value: value, total: totalWorkday };
+      return ContentService.createTextOutput(JSON.stringify(response)).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // --- Xử lý lưu cả dòng (save-row) ---
+    if (action === "save-row") {
+      var employeeId = String(params.employeeId || "").trim();
+      var daysJson = String(params.days || "[]");
+      var daysArray = JSON.parse(daysJson);
+      
+      if (!employeeId) throw new Error("Thiếu mã nhân viên.");
+      if (!daysArray || daysArray.length !== 31) throw new Error("Mảng ngày phải chứa đúng 31 phần tử.");
+      
+      var sheetChamCong = doc.getSheetByName(targetMonth) || doc.getSheetByName(SHEET_CHAM_CONG_THANG);
+      if (!sheetChamCong) throw new Error("Không tìm thấy trang tính chấm công.");
+      
+      var data = sheetChamCong.getDataRange().getValues();
+      var headers = data[0];
+      var colIdx = getColumnIndexes(headers);
+      var targetRowIndex = -1;
+      var foundRow = null;
+      
+      for (var i = 1; i < data.length; i++) {
+        if (String(data[i][colIdx["mã nhân vien"]]).trim() === employeeId) {
+          targetRowIndex = i + 1;
+          foundRow = data[i];
+          break;
+        }
+      }
+      if (targetRowIndex === -1) throw new Error("Không tìm thấy nhân viên " + employeeId);
+      
+      for (var d = 1; d <= 31; d++) {
+        var val = String(daysArray[d - 1] !== undefined ? daysArray[d - 1] : "").trim();
+        sheetChamCong.getRange(targetRowIndex, colIdx[String(d)] + 1).setValue(val);
+        foundRow[colIdx[String(d)]] = val;
+      }
+      var totalWorkday = calculateTotalWorkdays(foundRow, colIdx);
+      sheetChamCong.getRange(targetRowIndex, colIdx["Tổng công"] + 1).setValue(totalWorkday);
+      sheetChamCong.getRange(targetRowIndex, colIdx["Thời điểm"] + 1).setValue(new Date());
+      
+      response = { success: true, message: "Cập nhật hàng thành công!", total: totalWorkday };
+      return ContentService.createTextOutput(JSON.stringify(response)).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    throw new Error("Hành động không hợp lệ: " + action);
+    
+  } catch (err) {
+    response = { success: false, message: err.toString() };
+    return ContentService.createTextOutput(JSON.stringify(response)).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+
 function getColumnIndexes(headers) {
   var idx = {};
   for (var i = 0; i < headers.length; i++) {

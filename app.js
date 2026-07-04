@@ -1029,12 +1029,22 @@ function Utilities_formatDateTime(date) {
 async function sendPostRequest(payload) {
   if (!state.apiUrl) return null;
   
-  const response = await fetch(state.apiUrl, {
-    method: "POST",
+  // Google Apps Script redirect (script.google.com -> script.googleusercontent.com)
+  // bị chặn bởi CORS khi dùng POST. Giải pháp: encode payload vào URL params và dùng GET.
+  const params = new URLSearchParams();
+  for (const [key, val] of Object.entries(payload)) {
+    if (typeof val === 'object') {
+      params.set(key, JSON.stringify(val));
+    } else {
+      params.set(key, String(val !== undefined && val !== null ? val : ""));
+    }
+  }
+  
+  const requestUrl = `${state.apiUrl}?${params.toString()}`;
+  const response = await fetch(requestUrl, {
+    method: "GET",
     mode: "cors",
-    redirect: "follow",
-    headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify(payload)
+    redirect: "follow"
   });
   
   return await response.json();
