@@ -261,47 +261,47 @@ function initMonthFilters() {
    ========================================================================== */
 
 async function refreshData() {
+  // 1. LUÔN nạp trước dữ liệu từ LocalStorage để hiển thị lập tức (Optimistic UI) và tránh mất cache khi tải lại
+  const cachedRecords = localStorage.getItem("vnpt_cached_grid_records");
+  const cachedEmployees = localStorage.getItem("vnpt_cached_employees");
+  const cachedConfirmations = localStorage.getItem("vnpt_cached_confirmations");
+  
+  if (cachedRecords) {
+    state.records = JSON.parse(cachedRecords).map(r => {
+      r["Tổng công"] = calculateTotalWorkdayFromDays(r["Ngày"]);
+      return r;
+    });
+  }
+  
+  if (cachedEmployees) {
+    state.employees = JSON.parse(cachedEmployees);
+  } else {
+    state.employees = [...DEFAULT_EMPLOYEES];
+  }
+  
+  if (cachedConfirmations) {
+    state.confirmations = JSON.parse(cachedConfirmations);
+  } else {
+    state.confirmations = [];
+  }
+  
+  // Đảm bảo luôn sinh dữ liệu mẫu cho tháng hiện tại nếu chưa tồn tại
+  const hasRecordsForMonth = state.records.some(r => r["Tháng"] === state.selectedMonth);
+  if (!hasRecordsForMonth) {
+    const newRecords = generateDefaultGridRecords(state.selectedMonth);
+    state.records = [...state.records.filter(r => r["Tháng"] !== state.selectedMonth), ...newRecords];
+    saveLocalRecords();
+  }
+  
+  setupDeptFilters();
+  triggerActiveTabRender();
+  
   if (!state.apiUrl) {
     setConnectionStatus(false);
-    // Sử dụng dữ liệu cache localStorage nếu có, nếu không sinh ngẫu nhiên
-    const cachedRecords = localStorage.getItem("vnpt_cached_grid_records");
-    const cachedEmployees = localStorage.getItem("vnpt_cached_employees");
-    const cachedConfirmations = localStorage.getItem("vnpt_cached_confirmations");
-    
-    if (cachedRecords) {
-      state.records = JSON.parse(cachedRecords).map(r => {
-        r["Tổng công"] = calculateTotalWorkdayFromDays(r["Ngày"]);
-        return r;
-      });
-    }
-    
-    if (cachedConfirmations) {
-      state.confirmations = JSON.parse(cachedConfirmations);
-    } else {
-      state.confirmations = [];
-    }
-    
-    // Đảm bảo luôn sinh dữ liệu mẫu cho tháng hiện tại nếu chưa tồn tại
-    const hasRecordsForMonth = state.records.some(r => r["Tháng"] === state.selectedMonth);
-    if (!hasRecordsForMonth) {
-      const newRecords = generateDefaultGridRecords(state.selectedMonth);
-      state.records = [...state.records.filter(r => r["Tháng"] !== state.selectedMonth), ...newRecords];
-      saveLocalRecords();
-    }
-    
-    if (cachedEmployees) {
-      state.employees = JSON.parse(cachedEmployees);
-    } else {
-      state.employees = [...DEFAULT_EMPLOYEES];
-      localStorage.setItem("vnpt_cached_employees", JSON.stringify(state.employees));
-    }
-    
-    setupDeptFilters();
-    triggerActiveTabRender();
     return;
   }
   
-  showToast("Đang tải dữ liệu từ Google Sheets...", "info");
+  showToast("Đang kết nối Google Sheets...", "info");
   
   try {
     const requestUrl = `${state.apiUrl}?month=${state.selectedMonth}`;
@@ -315,11 +315,11 @@ async function refreshData() {
       });
       state.employees = result.employees || [];
       
-      // Merge confirmations từ server với confirmations local:
-      // Ưu tiên giữ các xác nhận local nếu server chưa có (do chưa đồng bộ được)
+      // Merge confirmations từ server với confirmations local đã nạp trước đó:
       const serverConfirmations = result.confirmations || [];
       const localConfirmations = state.confirmations || [];
       const mergedConfirmations = [...serverConfirmations];
+      
       localConfirmations.forEach(local => {
         const existsOnServer = mergedConfirmations.some(
           s => s.department === local.department && s.month === local.month
@@ -328,16 +328,17 @@ async function refreshData() {
           mergedConfirmations.push(local); // Giữ lại xác nhận local chưa đồng bộ
         }
       });
+      
       state.confirmations = mergedConfirmations;
       state.isLive = true;
       
-      // Lưu trữ cache offline
+      // Đồng bộ ngược lại Cache
       localStorage.setItem("vnpt_cached_grid_records", JSON.stringify(state.records));
       localStorage.setItem("vnpt_cached_employees", JSON.stringify(state.employees));
       localStorage.setItem("vnpt_cached_confirmations", JSON.stringify(state.confirmations));
       
       setConnectionStatus(true);
-      showToast("Tải dữ liệu thành công!", "success");
+      showToast("Đã đồng bộ dữ liệu mới nhất từ Sheets!", "success");
     } else {
       throw new Error(result.message || "Lỗi phản hồi API.");
     }
@@ -345,26 +346,7 @@ async function refreshData() {
     console.error("Fetch error:", error);
     state.isLive = false;
     setConnectionStatus(false);
-    showToast("Không thể kết nối Google Sheets. Đang dùng dữ liệu cục bộ.", "error");
-    
-    const cachedRecords = localStorage.getItem("vnpt_cached_grid_records");
-    if (cachedRecords) {
-      state.records = JSON.parse(cachedRecords);
-    }
-    const cachedConfirmations = localStorage.getItem("vnpt_cached_confirmations");
-    if (cachedConfirmations) {
-      state.confirmations = JSON.parse(cachedConfirmations);
-    } else {
-      state.confirmations = [];
-    }
-    
-    // Đảm bảo luôn sinh dữ liệu mẫu cho tháng hiện tại nếu cache trống để tránh màn hình trống
-    const hasRecordsForMonth = state.records.some(r => r["Tháng"] === state.selectedMonth);
-    if (!hasRecordsForMonth) {
-      const newRecords = generateDefaultGridRecords(state.selectedMonth);
-      state.records = [...state.records.filter(r => r["Tháng"] !== state.selectedMonth), ...newRecords];
-      saveLocalRecords();
-    }
+    showToast("Không thể kết nối Google Sheets. Đang dùng dữ liệu ngoại tuyến.", "error");
   }
   
   setupDeptFilters();
