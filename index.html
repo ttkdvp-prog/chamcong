@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VNPT Phú Thọ - Bảng Lưới Chấm Công Tháng</title>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+      <div class="mobile-brand">
+        <span class="mobile-brand-title">TT Hạ tầng - VNPT Phú Thọ</span>
+        <span class="mobile-brand-accent">BẢNG CHẤM CÔNG THÁNG</span>
+      </div>
+      <button id="menu-toggle" class="menu-toggle">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="sidebar">
+      <div class="brand-section">
+        <span class="brand-title-small">Trung tâm Hạ tầng</span>
+        <h2 class="brand-title-main">VNPT Phú Thọ</h2>
+        <span class="brand-title-accent">LƯỚI CHẤM CÔNG</span>
+      </div>
+      
+      <nav class="nav-links">
+        <li class="nav-item">
+          <button class="nav-button active" data-tab="attendance">
+            <i class="fa-solid fa-table-cells"></i>
+            <span>Bảng Chấm Công</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-button" data-tab="dashboard">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Thống Kê KPI</span>
+          </button>
+        </li>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div id="connection-status" class="status-badge offline">
+          <span class="status-dot active"></span>
+          <span class="status-text">Chế độ ngoại tuyến</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-content">
+      
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <h1 id="page-title" class="page-title">Bảng Chấm Công Tháng</h1>
+        <p class="page-subtitle">Quản lý ngày công nhân viên, soát ô trống và tổng hợp chuyên cần tự động</p>
+      </div>
+
+      <!-- TAB 1: ATTENDANCE GRID VIEW -->
+      <section id="attendance-tab" class="tab-pane active">
+        <div class="glass-panel">
+          
+          <!-- Grid Control Filters -->
+          <div class="table-actions">
+            <div class="filter-group">
+              <select id="grid-month-filter" class="form-control filter-select">
+                <!-- JS will populate monthly options -->
+              </select>
+              <select id="grid-dept-filter" class="form-control filter-select">
+                <option value="">Tất cả các tổ</option>
+              </select>
+              <input type="text" id="grid-search" class="form-control" placeholder="Tìm tên hoặc mã NV..." style="max-width: 200px;">
+            </div>
+            
+            <div class="filter-group">
+              <!-- Review Mode Toggle Button -->
+              <button id="btn-toggle-review" class="btn btn-warning">
+                <i class="fa-solid fa-circle-exclamation"></i> Soát ô trống
+              </button>
+              
+              <!-- Checkbox option: Show incomplete staff only -->
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; color: var(--color-text-muted);">
+                <input type="checkbox" id="chk-incomplete-only" style="width: 16px; height: 16px; accent-color: var(--color-primary);">
+                Chỉ nhân viên thiếu công
+              </label>
+            </div>
+          </div>
+          
+          <!-- Info Banner for Review Mode -->
+          <div id="review-banner" class="status-preview" style="display: none; margin-bottom: 20px; border-color: var(--color-warning); background: rgba(245, 158, 11, 0.03);">
+            <div class="preview-row" style="align-items: center;">
+              <span class="preview-label" style="color: var(--color-warning); font-weight: 600;">
+                <i class="fa-solid fa-triangle-exclamation"></i> CHẾ ĐỘ SOÁT LỖI ĐANG BẬT:
+              </span>
+              <span id="review-summary-text" class="preview-value" style="color: var(--color-text-main);">
+                Tìm thấy 0 ô trống chưa chấm công ký hiệu. Nhấp đúp vào ô để sửa nhanh hoặc bấm chọn ô để hiển thị bảng menu.
+              </span>
+            </div>
+          </div>
+
+          <!-- The Monthly Grid Table Container -->
+          <div class="table-container">
+            <table id="attendance-grid-table" class="glass-table">
+              <thead>
+                <!-- Dynamically generated via Javascript -->
+              </thead>
+              <tbody id="attendance-grid-body">
+                <!-- Dynamically generated via Javascript -->
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Legend guide for cell symbols -->
+          <div style="margin-top: 18px; display: flex; gap: 24px; font-size: 0.8rem; color: var(--color-text-muted); flex-wrap: wrap;">
+            <span><b>Hướng dẫn chấm nhanh:</b> Click đơn vào ô ngày để mở bảng chọn nhanh. Hoặc click đúp (Double-click) để xoay vòng ký hiệu.</span>
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <span>Ký hiệu chấm công:</span>
+              <span><span class="badge badge-success" style="padding: 2px 6px; background: rgba(0, 196, 140, 0.2); color: var(--color-success); border: 1px solid var(--color-success);">X</span> Đi làm (1.0)</span>
+              <span><span class="badge badge-danger" style="padding: 2px 6px; background: rgba(244, 63, 94, 0.2); color: var(--color-danger); border: 1px solid var(--color-danger);">Ro</span> Việc riêng không lương (0.0)</span>
+              <span><span class="badge badge-info" style="padding: 2px 6px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #3b82f6;">F</span> Phép năm (1.0)</span>
+              <span><span class="badge badge-purple" style="padding: 2px 6px; background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid #a855f7;">NB</span> Nghỉ bù (1.0)</span>
+              <span><span class="badge badge-warning" style="padding: 2px 6px; background: rgba(249, 115, 22, 0.2); color: #f97316; border: 1px solid #f97316;">O</span> Ốm (0.0)</span>
+              <span><span style="border: 1px dashed #777; padding: 2px 6px; border-radius: 4px; color: var(--color-text-muted);">Trống</span> Chưa chấm</span>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+
+      <!-- TAB 2: DASHBOARD STATS -->
+      <section id="dashboard-tab" class="tab-pane">
+        <!-- Dashboard Month Filter -->
+        <div class="table-actions">
+          <div class="chart-title">Thống kê dữ liệu chuyên cần</div>
+          <div class="filter-group">
+            <select id="dashboard-month-filter" class="form-control filter-select">
+              <!-- JS will populate monthly options -->
+            </select>
+          </div>
+        </div>
+
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon primary">
+              <i class="fa-solid fa-calculator"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Tổng số công tích lũy</span>
+              <span id="kpi-total-workdays" class="kpi-value">0</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon success">
+              <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Tổng lượt ngày công (X)</span>
+              <span id="kpi-x-count" class="kpi-value">0</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon warning">
+              <i class="fa-solid fa-user-clock"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Tổng lượt nửa ngày (X/2)</span>
+              <span id="kpi-half-count" class="kpi-value">0</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon danger">
+              <i class="fa-solid fa-user-xmark"></i>
+            </div>
+            <div class="kpi-info">
+              <span class="kpi-title">Số ô trống chưa chấm</span>
+              <span id="kpi-empty-count" class="kpi-value">0 ô</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="glass-panel">
+          <div class="charts-grid">
+            <div>
+              <h3 class="chart-title">Tỷ lệ Phân bổ ký hiệu ngày công</h3>
+              <div class="chart-wrapper">
+                <canvas id="punctualityChart"></canvas>
+              </div>
+            </div>
+            <div>
+              <h3 class="chart-title">Tổng số công tích lũy theo từng Tổ</h3>
+              <div class="chart-wrapper">
+                <canvas id="departmentWorkdaysChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bảng Tổng Hợp Công Theo Tổ & Nhân Viên -->
+        <div class="glass-panel" style="margin-top: 24px;">
+          <div class="table-actions" style="margin-bottom: 16px;">
+            <div class="chart-title" style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--color-primary);"><i class="fa-solid fa-table-list"></i> Bảng Tổng Hợp Công Theo Tổ & Nhân Viên</div>
+            <div class="filter-group">
+              <select id="dashboard-dept-filter" class="form-control filter-select" style="min-width: 200px;">
+                <option value="">Tất cả các tổ</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="table-container">
+            <table class="glass-table">
+              <thead>
+                <tr>
+                  <th style="width: 70px; text-align: center;">STT</th>
+                  <th style="width: 140px;">Mã Nhân Viên</th>
+                  <th>Họ và Tên</th>
+                  <th>Tổ (Bộ phận)</th>
+                  <th style="width: 160px; text-align: center;">Tổng Ngày Công</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-summary-body">
+                <!-- Dữ liệu được nạp động từ JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+
+
+    </main>
+  </div>
+
+  <!-- CELL EDIT POPUP PICKER (Quick floating menu) -->
+  <div id="cell-popover" class="cell-popover" style="display: none;">
+    <button class="popover-btn btn-x" data-val="X" title="Đi làm (1.0 công)">X</button>
+    <button class="popover-btn btn-ro" data-val="Ro" title="Việc riêng không lương (0.0 công)">Ro</button>
+    <button class="popover-btn btn-f" data-val="F" title="Phép năm (1.0 công)">F</button>
+    <button class="popover-btn btn-nb" data-val="NB" title="Nghỉ bù (1.0 công)">NB</button>
+    <button class="popover-btn btn-o" data-val="O" title="Ốm (0.0 công)">O</button>
+    <button class="popover-btn btn-clear" data-val="" title="Xóa ký hiệu"><i class="fa-solid fa-trash-can"></i></button>
+  </div>
+
+  <!-- ROW EDIT MODAL DIALOG (Optional bulk editor) -->
+  <div id="edit-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-pen"></i> Thông tin dòng ngày công</h3>
+        <button id="modal-close" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-record-form">
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label>Họ và tên nhân viên</label>
+              <input type="text" id="edit-name" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label>Mã nhân viên</label>
+              <input type="text" id="edit-id" class="form-control" readonly>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Tổ / Bộ phận</label>
+            <input type="text" id="edit-dept" class="form-control" readonly>
+          </div>
+          <div class="form-group" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border-glass); padding: 12px; border-radius: 8px;">
+            <label style="color: var(--color-primary);">Tác vụ nhanh</label>
+            <p class="page-subtitle" style="margin-bottom: 12px;">Điền nhanh ký hiệu công cho toàn bộ các ngày trống của nhân viên này:</p>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" id="btn-bulk-fill-x" class="btn btn-secondary" style="border-color: var(--color-success); color: var(--color-success);">Điền X ngày đi làm</button>
+              <button type="button" id="btn-bulk-clear" class="btn btn-secondary">Xóa tất cả 31 ngày</button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-edit-close" class="btn btn-secondary">Đóng lại</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Area -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Main JavaScript File -->
+  <script src="app.js"></script>
+</body>
+</html>
