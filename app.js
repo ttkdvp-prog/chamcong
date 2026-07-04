@@ -165,7 +165,7 @@ function initTabRouting() {
   
   const tabTitles = {
     attendance: "Bảng Chấm Công Tháng",
-    dashboard: "Thống Kê KPI Chuyên Cần",
+    dashboard: "Thống kê",
     verification: "Xác Nhận & Thống Kê Phê Duyệt Số Liệu"
   };
 
