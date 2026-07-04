@@ -226,6 +226,7 @@ function initMobileMenu() {
 function initMonthFilters() {
   const gridMonthFilter = document.getElementById("grid-month-filter");
   const dashMonthFilter = document.getElementById("dashboard-month-filter");
+  const verifyMonthFilter = document.getElementById("verification-month-filter");
   
   const months = [];
   const now = new Date();
@@ -237,7 +238,8 @@ function initMonthFilters() {
   
   state.selectedMonth = months[0];
   
-  [gridMonthFilter, dashMonthFilter].forEach(filter => {
+  const filters = [gridMonthFilter, dashMonthFilter, verifyMonthFilter].filter(f => f !== null);
+  filters.forEach(filter => {
     filter.innerHTML = "";
     months.forEach(m => {
       const option = document.createElement("option");
@@ -248,8 +250,9 @@ function initMonthFilters() {
     });
   });
   
-  gridMonthFilter.value = state.selectedMonth;
-  dashMonthFilter.value = state.selectedMonth;
+  if (gridMonthFilter) gridMonthFilter.value = state.selectedMonth;
+  if (dashMonthFilter) dashMonthFilter.value = state.selectedMonth;
+  if (verifyMonthFilter) verifyMonthFilter.value = state.selectedMonth;
 }
 
 /* ==========================================================================
